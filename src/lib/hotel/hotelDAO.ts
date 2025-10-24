@@ -542,17 +542,10 @@ export class HotelDAO {
       params.push(...conditions.groupCodes);
     }
 
-    // 酒店编码模糊查询
+    // 酒店编码或名称模糊查询 - 同时搜索酒店编号和酒店名称
     if (conditions.hotelCode) {
-      whereClause += ` AND HotelCode LIKE @param${paramIndex}`;
+      whereClause += ` AND (HotelCode LIKE @param${paramIndex} OR HotelName LIKE @param${paramIndex})`;
       params.push(`%${conditions.hotelCode}%`);
-      paramIndex++;
-    }
-
-    // 酒店名称模糊查询
-    if (conditions.hotelName) {
-      whereClause += ` AND HotelName LIKE @param${paramIndex}`;
-      params.push(`%${conditions.hotelName}%`);
       paramIndex++;
     }
 

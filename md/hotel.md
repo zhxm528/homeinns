@@ -43,6 +43,7 @@ FCQD 非产权店
 SJJT 首酒集团
 SLJT 首旅集团
 SLZY 首旅置业
+SFT 首副通
 ```
 
 ##PMSType PMS类型的枚举
@@ -62,8 +63,11 @@ JG 建国
 JL 京伦
 NY 南苑
 NH 云荟
-NI 诺岚
+NI 诺金
+NU 诺岚
 KP 凯宾斯基
+YF 逸扉
+WX 万信
 ```
 
 ##Status 状态的枚举
@@ -83,3 +87,5 @@ KP 凯宾斯基
 ##列表显示排序
 - 第一排序： GroupCode 按字母顺序从小到大
 - 第二排序： hotelCode 按字母顺序从小到大
+
+##页面右上角和右下角添加 返回 按钮 支持返回到 app/product/page.tsx 页面

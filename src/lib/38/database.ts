@@ -42,8 +42,13 @@ export function getPool(): sql.ConnectionPool {
 // 执行查询
 export async function executeQuery<T = any>(query: string, params?: any[]): Promise<T[]> {
   try {
-    const pool = getPool();
-    const request = pool.request();
+    // 如果连接池未初始化，自动初始化
+    if (!pool) {
+      await initDatabase();
+    }
+    
+    const currentPool = getPool();
+    const request = currentPool.request();
     
     // 打印SQL语句和参数
     console.log('🔍 [SQL Query]', query);
@@ -82,8 +87,13 @@ export async function executeProcedure<T = any>(
   params?: Record<string, any>
 ): Promise<T[]> {
   try {
-    const pool = getPool();
-    const request = pool.request();
+    // 如果连接池未初始化，自动初始化
+    if (!pool) {
+      await initDatabase();
+    }
+    
+    const currentPool = getPool();
+    const request = currentPool.request();
     
     // 打印存储过程调用和参数
     console.log('🔍 [Stored Procedure]', procedureName);

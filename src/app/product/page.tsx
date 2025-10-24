@@ -125,13 +125,24 @@ export default function ProductHome() {
                 报表分析
               </h2>
               <div className="space-y-2">
-                <div className="block p-3 rounded-lg opacity-50">
+                <Link href="/report/ratecode/checkpublish" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
-                    <span className="text-gray-500">订单查询</span>
-                    <span className="ml-auto text-xs text-gray-400">即将推出</span>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">检查RateCode是否发布</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
-                </div>
+                </Link>
+                <Link href="/report/ratecode/productreport" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">房价码产量报表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>

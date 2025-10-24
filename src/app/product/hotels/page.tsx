@@ -19,7 +19,7 @@ export default function HotelList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [hotelCode, setHotelCode] = useState('');
   const [hotelName, setHotelName] = useState('');
-  const [groupCodes, setGroupCodes] = useState<string[]>(['JG','JL','NY','NH','NI','KP']);
+  const [groupCodes, setGroupCodes] = useState<string[]>(['JG','JL','NY','NH','NI','KP','YF','WX']);
   const [hotelTypes, setHotelTypes] = useState<string[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<string[]>([]);
   const [pmsTypes, setPmsTypes] = useState<string[]>([]);
@@ -93,7 +93,7 @@ export default function HotelList() {
   const handleReset = () => {
     setHotelCode('');
     setHotelName('');
-    setGroupCodes(['JG','JL','NY','NH','NI','KP']);
+    setGroupCodes(['JG','JL','NY','NH','NI','KP','YF','WX']);
     setHotelTypes([]);
     setPropertyTypes([]);
     setPmsTypes([]);
@@ -141,8 +141,11 @@ export default function HotelList() {
       'JL': '京伦',
       'NY': '南苑',
       'NH': '云荟',
-      'NI': '诺岚',
-      'KP': '凯宾斯基'
+      'NI': '诺金',
+      'NU': '诺岚',
+      'KP': '凯宾斯基',
+      'YF': '逸扉',
+      'WX': '万信'
     };
     return groupCodeMap[code] || code;
   };
@@ -162,7 +165,8 @@ export default function HotelList() {
       'FCQD': '非产权店',
       'SJJT': '首酒集团',
       'SLJT': '首旅集团',
-      'SLZY': '首旅置业'
+      'SLZY': '首旅置业',
+      'SFT': '首副通'
     };
     return propertyTypeMap[type] || type;
   };
@@ -270,7 +274,7 @@ export default function HotelList() {
                 管理公司
               </label>
               <div className="flex flex-wrap gap-2">
-                {['JG','JL','NY','NH','NI','KP'].map(code => (
+                {['JG','JL','NY','NH','NI','NU','KP','YF','WX'].map(code => (
                   <label key={code} className="flex items-center">
                     <input
                       type="checkbox"
@@ -310,7 +314,7 @@ export default function HotelList() {
                 产权类型
               </label>
               <div className="flex flex-wrap gap-2">
-                {['BZ','FCQD','SJJT','SLJT','SLZY'].map(type => (
+                {['BZ','FCQD','SJJT','SLJT','SLZY','SFT'].map(type => (
                   <label key={type} className="flex items-center">
                     <input
                       type="checkbox"
