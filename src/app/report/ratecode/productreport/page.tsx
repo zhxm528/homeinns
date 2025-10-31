@@ -24,7 +24,7 @@ export default function ProductReport() {
   const [endDate, setEndDate] = useState('');
   const [rateCodes, setRateCodes] = useState('');
   const [channelCodes, setChannelCodes] = useState<string[]>([]);
-  const [groupCodes, setGroupCodes] = useState<string[]>(['JG','JL','NY','NH','NI','NU','KP']);
+  const [groupCodes, setGroupCodes] = useState<string[]>(['JG','JL','NY','NH','NI','NU','KP','YF','WX']);
   const [status, setStatus] = useState('1');
   const [isDelete, setIsDelete] = useState('0');
   const [pmsTypes, setPmsTypes] = useState<string[]>([]);
@@ -162,7 +162,7 @@ export default function ProductReport() {
     setStartDate(start.toISOString().split('T')[0]);
     setRateCodes('');
     setChannelCodes([]);
-    setGroupCodes(['JG','JL','NY','NH','NI','NU','KP']);
+    setGroupCodes(['JG','JL','NY','NH','NI','NU','KP','YF','WX']);
     setStatus('1');
     setIsDelete('0');
     setPmsTypes([]);

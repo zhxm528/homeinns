@@ -457,6 +457,20 @@ export default function HotelList() {
             </div>
         )}
 
+        {/* 结果统计 */}
+        {!loading && hotels.length > 0 && (
+          <div className="mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+            <div className="text-gray-800 font-medium">
+              共找到 <span className="text-blue-600 font-bold">{hotels.length}</span> 家酒店
+            </div>
+            {error && (
+              <span className="text-sm text-orange-600">
+                (使用备用数据)
+              </span>
+            )}
+          </div>
+        )}
+
         {/* 酒店列表 */}
         {!loading && (
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">

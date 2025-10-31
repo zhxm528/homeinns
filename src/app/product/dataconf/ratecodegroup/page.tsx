@@ -1,38 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
-interface RateCodeCheckResult {
-  酒店编码: string;
+interface RateCodeGroup {
+  ID: number;
+  品牌代码: string;
+  房价码组名称: string;
+  房价码数量: number;
+  房价码明细列表: string[];
+  级别: number;
+  酒店代码: string;
   酒店名称: string;
-  酒店类型: string;
-  PMSType: string;
-  发布渠道: string;
-  房价码发布数量: number;
-  房价码明细列表: string;
+  管理公司: string;
+  市场码: string;
+  渠道码: string;
 }
 
-export default function RateCodeCheckPublish() {
-  const [queryDate, setQueryDate] = useState('');
-  const [rateCodes, setRateCodes] = useState('');
-  const [channelCodes, setChannelCodes] = useState('');
-  const [groupCodes, setGroupCodes] = useState<string[]>(['JG','JL','NY','NH','NI','NU','KP','YF','WX']);
-  const [status, setStatus] = useState('1');
-  const [isDelete, setIsDelete] = useState('0');
-  const [pmsTypes, setPmsTypes] = useState<string[]>([]);
-  const [propertyTypes, setPropertyTypes] = useState<string[]>([]);
-  const [results, setResults] = useState<RateCodeCheckResult[]>([]);
+export default function RateCodeGroupPage() {
+  const [groupCodes, setGroupCodes] = useState<string[]>([]);
+  const [rateCode, setRateCode] = useState('');
+  const [marketCode, setMarketCode] = useState('');
+  const [results, setResults] = useState<RateCodeGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedRateCodes, setSelectedRateCodes] = useState<string>('');
-
-  // 设置默认查询日期为今天
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setQueryDate(today);
-  }, []);
+  const [selectedRateCodes, setSelectedRateCodes] = useState<string[]>([]);
+  const [showChannelModal, setShowChannelModal] = useState(false);
+  const [selectedChannelCode, setSelectedChannelCode] = useState('');
+  const [showMarketModal, setShowMarketModal] = useState(false);
+  const [selectedMarketCode, setSelectedMarketCode] = useState('');
 
   // 查询函数
   const handleQuery = async () => {
@@ -41,16 +38,11 @@ export default function RateCodeCheckPublish() {
       setError(null);
 
       const params = new URLSearchParams();
-      params.append('queryDate', queryDate);
-      params.append('rateCodes', rateCodes);
-      params.append('channelCodes', channelCodes);
       if (groupCodes.length > 0) params.append('groupCodes', groupCodes.join(','));
-      params.append('status', status);
-      params.append('isDelete', isDelete);
-      if (pmsTypes.length > 0) params.append('pmsTypes', pmsTypes.join(','));
-      if (propertyTypes.length > 0) params.append('propertyTypes', propertyTypes.join(','));
+      if (rateCode) params.append('rateCode', rateCode);
+      if (marketCode) params.append('marketCode', marketCode);
 
-      const response = await fetch(`/api/report/ratecode/checkpublish?${params.toString()}`);
+      const response = await fetch(`/api/product/dataconf/ratecodegroup?${params.toString()}`);
       const data = await response.json();
 
       if (data.success) {
@@ -70,15 +62,9 @@ export default function RateCodeCheckPublish() {
 
   // 重置查询条件
   const handleReset = () => {
-    const today = new Date().toISOString().split('T')[0];
-    setQueryDate(today);
-    setRateCodes('');
-    setChannelCodes('');
-    setGroupCodes(['JG','JL','NY','NH','NI','NU','KP','YF','WX']);
-    setStatus('1');
-    setIsDelete('0');
-    setPmsTypes([]);
-    setPropertyTypes([]);
+    setGroupCodes([]);
+    setRateCode('');
+    setMarketCode('');
     setResults([]);
     setError(null);
   };
@@ -99,47 +85,18 @@ export default function RateCodeCheckPublish() {
     return groupCodeMap[code] || code;
   };
 
-  const getPropertyTypeDisplay = (type: string) => {
-    const propertyTypeMap: Record<string, string> = {
-      'BZ': '北展',
-      'FCQD': '非产权店',
-      'SJJT': '首酒集团',
-      'SLJT': '首旅集团',
-      'SLZY': '首旅置业',
-      'SFT': '首副通'
+  const getChannelCodeDisplay = (code: string) => {
+    const channelCodeMap: Record<string, string> = {
+      'CTP': '携程',
+      'MDI': '美团',
+      'OBR': '飞猪',
+      'CTM': '商旅',
+      'WEB': '官渠'
     };
-    return propertyTypeMap[type] || type;
-  };
-
-  const getPmsTypeDisplay = (type: string) => {
-    const pmsTypeMap: Record<string, string> = {
-      'Cambridge': '康桥',
-      'Opera': '手工填报',
-      'P3': '如家P3',
-      'Soft': '软连接',
-      'X6': '西软X6',
-      'XMS': '西软XMS'
-    };
-    return pmsTypeMap[type] || type;
+    return channelCodeMap[code] || code;
   };
 
   // 多选处理函数
-  const handlePmsTypeChange = (type: string) => {
-    setPmsTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
-  };
-
-  const handlePropertyTypeChange = (type: string) => {
-    setPropertyTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
-  };
-
   const handleGroupCodeChange = (code: string) => {
     setGroupCodes(prev => 
       prev.includes(code) 
@@ -155,8 +112,8 @@ export default function RateCodeCheckPublish() {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">检查RateCode是否发布</h1>
-              <p className="text-gray-600">查询指定日期和条件下的房价码发布状态</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">数据配置-房价码分组</h1>
+              <p className="text-gray-600">查询和展示房价码分组配置信息</p>
             </div>
             {/* 右上角返回按钮 */}
             <Link
@@ -189,56 +146,10 @@ export default function RateCodeCheckPublish() {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">查询条件</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* 查询日期 */}
+            {/* 酒店管理公司 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                查询日期
-              </label>
-              <input
-                type="date"
-                value={queryDate}
-                onChange={(e) => setQueryDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* 房价码列表 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                房价码列表
-              </label>
-              <input
-                type="text"
-                placeholder=""
-                value={rateCodes}
-                onChange={(e) => setRateCodes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* 发布渠道列表 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                发布渠道列表
-              </label>
-              <select
-                value={channelCodes}
-                onChange={(e) => setChannelCodes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">全部</option>
-                <option value="CTP">CTP 携程</option>
-                <option value="MDI">MDI 美团</option>
-                <option value="OBR">OBR 飞猪</option>
-                <option value="CTM">CTM 商旅</option>
-                <option value="WEB">WEB 官渠</option>
-              </select>
-            </div>
-
-            {/* 管理公司列表 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                管理公司列表
+                酒店管理公司
               </label>
               <div className="flex flex-wrap gap-2">
                 {['JG','JL','NY','NH','NI','NU','KP','YF','WX'].map(code => (
@@ -255,74 +166,32 @@ export default function RateCodeCheckPublish() {
               </div>
             </div>
 
-            {/* 状态列表 */}
+            {/* 房价码 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                状态
+                房价码（模糊查询）
               </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
+              <input
+                type="text"
+                placeholder="输入房价码"
+                value={rateCode}
+                onChange={(e) => setRateCode(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="1">启用</option>
-                <option value="0">停用</option>
-              </select>
+              />
             </div>
 
-            {/* 是否删除列表 */}
+            {/* 市场码 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                是否删除
+                市场码（模糊查询）
               </label>
-              <select
-                value={isDelete}
-                onChange={(e) => setIsDelete(e.target.value)}
+              <input
+                type="text"
+                placeholder="输入市场码"
+                value={marketCode}
+                onChange={(e) => setMarketCode(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="0">正常</option>
-                <option value="1">已删除</option>
-              </select>
-            </div>
-
-            {/* PMS类型 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                PMS类型
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {['Cambridge','Opera','P3','Soft','X6','XMS'].map(type => (
-                  <label key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={pmsTypes.includes(type)}
-                      onChange={() => handlePmsTypeChange(type)}
-                      className="mr-1"
-                    />
-                    <span className="text-sm">{getPmsTypeDisplay(type)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 产权类型 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                产权类型
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {['BZ','FCQD','SJJT','SLJT','SLZY','SFT'].map(type => (
-                  <label key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={propertyTypes.includes(type)}
-                      onChange={() => handlePropertyTypeChange(type)}
-                      className="mr-1"
-                    />
-                    <span className="text-sm">{getPropertyTypeDisplay(type)}</span>
-                  </label>
-                ))}
-              </div>
+              />
             </div>
           </div>
 
@@ -364,45 +233,34 @@ export default function RateCodeCheckPublish() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 left-0 z-10">
+                      房价码组名称
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      酒店编号
+                      房价码数量
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                      市场码
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                      渠道码
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                      级别
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
                       酒店名称
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      酒店类型
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      PMS类型
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      发布渠道
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      房价码数量
+                      品牌名称
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {results.map((result, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white">
-                        {result.酒店编码}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {result.酒店名称}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {getPropertyTypeDisplay(result.酒店类型)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {getPmsTypeDisplay(result.PMSType)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {result.发布渠道}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
+                        {result.房价码组名称}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <button
@@ -412,8 +270,39 @@ export default function RateCodeCheckPublish() {
                           }}
                           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                         >
-                          {result.房价码发布数量}
+                          {result.房价码数量}
                         </button>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <button
+                          onClick={() => {
+                            setSelectedMarketCode(result.市场码 || '暂无');
+                            setShowMarketModal(true);
+                          }}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
+                        >
+                          {result.市场码 || '--'}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <button
+                          onClick={() => {
+                            setSelectedChannelCode(result.渠道码 || '暂无');
+                            setShowChannelModal(true);
+                          }}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 cursor-pointer"
+                        >
+                          {result.渠道码 ? getChannelCodeDisplay(result.渠道码) : '--'}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {result.级别}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {result.酒店名称}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {getGroupCodeDisplay(result.品牌代码)}
                       </td>
                     </tr>
                   ))}
@@ -441,20 +330,7 @@ export default function RateCodeCheckPublish() {
           </div>
         )}
 
-        {/* 右下角返回按钮 */}
-        <div className="mt-8 flex justify-end">
-          <Link
-            href="/product"
-            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            返回产品中心
-          </Link>
-        </div>
-
-        {/* 房价码详情弹窗 */}
+        {/* 房价码明细弹窗 */}
         {showModal && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4">
@@ -463,21 +339,17 @@ export default function RateCodeCheckPublish() {
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">房价码明细</h3>
                 </div>
-                <div className="px-6 py-4">
+                <div className="px-6 py-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
-                    {selectedRateCodes.split(',').map((rateCodeItem, index) => {
-                      const parts = rateCodeItem.trim().split(' ');
-                      const code = parts[0];
-                      const name = parts.slice(1).join(' ');
-                      return (
+                    {selectedRateCodes.length > 0 ? (
+                      selectedRateCodes.map((rateCode, index) => (
                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">{code}</span>
-                            {name && <span className="text-xs text-gray-500">{name}</span>}
-                          </div>
+                          <span className="text-sm text-gray-900">{rateCode}</span>
                         </div>
-                      );
-                    })}
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">暂无数据</p>
+                    )}
                   </div>
                 </div>
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
@@ -492,6 +364,69 @@ export default function RateCodeCheckPublish() {
             </div>
           </div>
         )}
+
+        {/* 市场码详情弹窗 */}
+        {showMarketModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowMarketModal(false)}></div>
+              <div className="bg-white rounded-lg shadow-xl max-w-md w-full relative z-10">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">市场码详情</h3>
+                </div>
+                <div className="px-6 py-4">
+                  <p className="text-sm text-gray-900">{selectedMarketCode}</p>
+                </div>
+                <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                  <button
+                    onClick={() => setShowMarketModal(false)}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    关闭
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 渠道码详情弹窗 */}
+        {showChannelModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowChannelModal(false)}></div>
+              <div className="bg-white rounded-lg shadow-xl max-w-md w-full relative z-10">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">渠道码详情</h3>
+                </div>
+                <div className="px-6 py-4">
+                  <p className="text-sm text-gray-900">{selectedChannelCode}</p>
+                </div>
+                <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                  <button
+                    onClick={() => setShowChannelModal(false)}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    关闭
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 右下角返回按钮 */}
+        <div className="mt-8 flex justify-end">
+          <Link
+            href="/product"
+            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            返回产品中心
+          </Link>
+        </div>
       </div>
     </div>
   );
