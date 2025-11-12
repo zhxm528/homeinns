@@ -9,6 +9,7 @@ export const dbConfig = {
     encrypt: false, // 如果使用Azure SQL，设置为true
     trustServerCertificate: true, // 信任服务器证书
     enableArithAbort: true,
+    requestTimeout: 90000, // 查询超时时间设置为90秒（90000毫秒）
   },
   pool: {
     max: 100,

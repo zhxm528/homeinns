@@ -1,6 +1,6 @@
 #房价码自定义组产量报表
 ##核心功能
-- 在app/目录下创建report/ratecode/productreport 子目录
+- 在app/目录下创建 report/ratecode/productreport 子目录
 - 在app/report/ratecode/productreport/目录下创建默认首页page.tsx
 - 在产品中心页面 app/product/page.tsx 中的 "报表分析"下增加"房价码产量报表" 并且设置路由到 app/report/ratecode/productreport/目录下 page.tsx 页面
 - 页面标题: 房价码产量报表

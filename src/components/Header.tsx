@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function Header() {
@@ -9,7 +10,7 @@ export default function Header() {
   const menuItems = [
     { name: "首页", href: "/" },
     { name: "价格", href: "/price" },
-    { name: "功能", href: "/features" },
+    { name: "产品线", href: "/subsystem" },
     { name: "关于", href: "/about" },
   ];
 
@@ -20,10 +21,18 @@ export default function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
+              <Image
+                className="dark:invert mr-3"
+                src="/logo1.png"
+                alt="HomeInns logo"
+                width={100}
+                height={20}
+                priority
+              />
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">H</span>
+                <span className="text-white font-bold text-lg">Z</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">HomeInns</span>
+              <span className="text-xl font-bold text-gray-900">首旅如家</span>
             </Link>
           </div>
 

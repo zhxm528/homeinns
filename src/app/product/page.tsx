@@ -143,6 +143,42 @@ export default function ProductHome() {
                     </svg>
                   </div>
                 </Link>
+                <Link href="/product/report-analysis/hotel-channel-segmentation" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">酒店渠道细分</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/report-analysis/business-data-monthly-report" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">经营数据自然月报</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/report-analysis/manual-monthly-report" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">手工填报月报</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/report-analysis/channel-trial-order-rate" className="block p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-orange-600">渠道试单下单率报表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -165,6 +201,119 @@ export default function ProductHome() {
                     <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
                     <span className="text-gray-700 group-hover:text-indigo-600">房价码分组</span>
                     <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/dataconf/account-config-check" className="block p-3 rounded-lg hover:bg-indigo-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-indigo-600">科目配置检查</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/dataconf/bi-guest-history-diff-check" className="block p-3 rounded-lg hover:bg-indigo-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-indigo-600">BI和客史差异检查</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/dataconf/bi-guest-history-market-diff-check" className="block p-3 rounded-lg hover:bg-indigo-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-indigo-600">BI和客史市场差异检查</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel 6: 逸扉报表 */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                逸扉报表
+              </h2>
+              <div className="space-y-2">
+                <Link href="/product/yifei/channel-booking-cycle" className="block p-3 rounded-lg hover:bg-teal-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-teal-600">渠道预订周期统计表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/yifei/country-month-statistics" className="block p-3 rounded-lg hover:bg-teal-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-teal-600">国家月统计报表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/yifei/sales-analysis-roomtype" className="block p-3 rounded-lg hover:bg-teal-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-teal-600">销售分析(房型)报表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/yifei/selfservice-usage-statistics" className="block p-3 rounded-lg hover:bg-teal-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-teal-600">自助机使用统计报表</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+                <Link href="/product/yifei/douyin-price-diff-order" className="block p-3 rounded-lg hover:bg-teal-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-teal-600">抖音加价差异订单</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel 7: 经营分析 */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                经营分析
+              </h2>
+              <div className="space-y-2">
+                <Link href="/product/business-analysis/daily-report" className="block p-3 rounded-lg hover:bg-red-50 transition-colors group">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                    <span className="text-gray-700 group-hover:text-red-600">经营日报</span>
+                    <svg className="ml-auto w-4 h-4 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
