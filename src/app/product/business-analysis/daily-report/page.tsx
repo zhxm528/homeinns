@@ -82,7 +82,9 @@ export default function DailyReportPage() {
           }
           // 构建跳转URL，传递酒店代码和日期范围
           const hotelCode = text || '';
-          const linkUrl = `/product/business-analysis/daily-report-days?hotelCode=${encodeURIComponent(hotelCode)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+          const currentStartDate = startDate || '';
+          const currentEndDate = endDate || '';
+          const linkUrl = `/product/business-analysis/daily-report-days?hotelCode=${encodeURIComponent(hotelCode)}&startDate=${encodeURIComponent(currentStartDate)}&endDate=${encodeURIComponent(currentEndDate)}`;
           return (
             <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline">
               {text}
@@ -277,7 +279,7 @@ export default function DailyReportPage() {
         },
       },
     ];
-  }, []);
+  }, [startDate, endDate]);
 
   const handleQuery = async (toPage?: number, toPageSize?: number) => {
     try {
