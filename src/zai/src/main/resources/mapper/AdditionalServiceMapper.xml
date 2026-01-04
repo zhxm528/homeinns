@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.additionalservice.mapper.AdditionalServiceMapper">
+    <resultMap id="BaseResultMap" type="com.zai.additionalservice.entity.AdditionalService">
+        <id column="service_id" property="serviceId" jdbcType="VARCHAR"/>
+        <result column="chain_id" property="chainId" jdbcType="VARCHAR"/>
+        <result column="hotel_id" property="hotelId" jdbcType="VARCHAR"/>
+        <result column="rate_code_id" property="rateCodeId" jdbcType="VARCHAR"/>
+        <result column="room_type_id" property="roomTypeId" jdbcType="VARCHAR"/>
+        <result column="rate_code" property="rateCode" jdbcType="VARCHAR"/>
+        <result column="room_type" property="roomType" jdbcType="VARCHAR"/>
+        <result column="service_code" property="serviceCode" jdbcType="VARCHAR"/>
+        <result column="service_name" property="serviceName" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="unit_price" property="unitPrice" jdbcType="DECIMAL"/>
+        <result column="unit_num" property="unitNum" jdbcType="DECIMAL"/>
+        <result column="limit_start_time" property="limitStartTime" jdbcType="VARCHAR"/>
+        <result column="limit_end_time" property="limitEndTime" jdbcType="VARCHAR"/>
+        <result column="avail_weeks" property="availWeeks" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        service_id, chain_id, hotel_id, rate_code_id, room_type_id, rate_code, room_type,
+        service_code, service_name, description, unit_price, unit_num,
+        limit_start_time, limit_end_time, avail_weeks, created_at
+    </sql>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM additional_services
+        <where>
+            <if test="chainId != null">AND chain_id = #{chainId}</if>
+            <if test="hotelId != null">AND hotel_id = #{hotelId}</if>
+            <if test="rateCodeId != null">AND rate_code_id = #{rateCodeId}</if>
+            <if test="serviceName != null">AND service_name LIKE CONCAT('%', #{serviceName}, '%')</if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByServiceId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM additional_services
+        WHERE service_id = #{serviceId}
+    </select>
+
+    <insert id="insert" parameterType="com.zai.additionalservice.entity.AdditionalService">
+        INSERT INTO additional_services (
+            service_id, chain_id, hotel_id, rate_code_id, room_type_id, rate_code, room_type,
+            service_code, service_name, description, unit_price, unit_num,
+            limit_start_time, limit_end_time, avail_weeks
+        ) VALUES (
+            #{serviceId}, #{chainId}, #{hotelId}, #{rateCodeId}, #{roomTypeId}, #{rateCode}, #{roomType},
+            #{serviceCode}, #{serviceName}, #{description}, #{unitPrice}, #{unitNum},
+            #{limitStartTime}, #{limitEndTime}, #{availWeeks}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.zai.additionalservice.entity.AdditionalService">
+        UPDATE additional_services
+        <set>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="rateCodeId != null">rate_code_id = #{rateCodeId},</if>
+            <if test="roomTypeId != null">room_type_id = #{roomTypeId},</if>
+            <if test="rateCode != null">rate_code = #{rateCode},</if>
+            <if test="roomType != null">room_type = #{roomType},</if>
+            <if test="serviceCode != null">service_code = #{serviceCode},</if>
+            <if test="serviceName != null">service_name = #{serviceName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="unitPrice != null">unit_price = #{unitPrice},</if>
+            <if test="unitNum != null">unit_num = #{unitNum},</if>
+            <if test="limitStartTime != null">limit_start_time = #{limitStartTime},</if>
+            <if test="limitEndTime != null">limit_end_time = #{limitEndTime},</if>
+            <if test="availWeeks != null">avail_weeks = #{availWeeks},</if>
+        </set>
+        WHERE service_id = #{serviceId}
+    </update>
+
+    <delete id="deleteByServiceId">
+        DELETE FROM additional_services WHERE service_id = #{serviceId}
+    </delete>
+
+    <select id="calendarByConditions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM additional_services
+        WHERE hotel_id = #{hotelId}
+        AND rate_code_id IN
+        <foreach collection="rateCodeIds" item="rateCodeId" open="(" separator="," close=")">
+            #{rateCodeId}
+        </foreach>
+        ORDER BY service_code ASC
+    </select>
+
+    <select id="selectByPackageCode" resultMap="BaseResultMap">
+        SELECT
+        service_code,service_name,description,unit_price,unit_num,limit_start_time,limit_end_time,avail_weeks
+        FROM additional_services
+        WHERE service_code = #{packageCode}
+    </select>
+
+
+</mapper> 

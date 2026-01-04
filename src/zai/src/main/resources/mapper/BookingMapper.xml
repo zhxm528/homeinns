@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.booking.mapper.BookingMapper">
+    
+    <resultMap id="BookingResultMap" type="com.zai.booking.entity.Booking">
+        <id column="booking_id" property="bookingId"/>
+        <result column="chain_id" property="chainId"/>
+        <result column="hotel_id" property="hotelId"/>
+        <result column="chain_code" property="chainCode"/>
+        <result column="chain_name" property="chainName"/>
+        <result column="hotel_code" property="hotelCode"/>
+        <result column="hotel_name" property="hotelName"/>
+        <result column="room_type_code" property="roomTypeCode"/>
+        <result column="room_type_name" property="roomTypeName"/>
+        <result column="rate_code" property="rateCode"/>
+        <result column="rate_code_name" property="rateCodeName"/>
+        <result column="package_code" property="packageCode"/>
+        <result column="package_name" property="packageName"/>
+        <result column="channel_code" property="channelCode"/>
+        <result column="channel_subcode" property="channelSubcode"/>
+        <result column="booker_code" property="bookerCode"/>
+        <result column="agent_code" property="agentCode"/>
+        <result column="source_code" property="sourceCode"/>
+        <result column="market_code" property="marketCode"/>
+        <result column="booker_type" property="bookerType"/>
+        <result column="channel_resv_no" property="channelResvNo"/>
+        <result column="channel_resv_sno" property="channelResvSno"/>
+        <result column="channel_resv_pno" property="channelResvPno"/>
+        <result column="crs_resv_no" property="crsResvNo"/>
+        <result column="crs_resv_pno" property="crsResvPno"/>
+        <result column="crs_resv_checkin_no" property="crsResvCheckinNo"/>
+        <result column="agent_resv_no" property="agentResvNo"/>
+        <result column="agent_resv_pno" property="agentResvPno"/>
+        <result column="hotel_resv_no" property="hotelResvNo"/>
+        <result column="hotel_resv_key" property="hotelResvKey"/>
+        <result column="hotel_resv_confirm" property="hotelResvConfirm"/>
+        <result column="hotel_room_no" property="hotelRoomNo"/>
+        <result column="payment_type" property="paymentType"/>
+        <result column="reservation_type" property="reservationType"/>
+        <result column="cancellation_type" property="cancellationType"/>
+        <result column="latest_cancellation_days" property="latestCancellationDays"/>
+        <result column="latest_cancellation_time" property="latestCancellationTime"/>
+        <result column="cancellable_after_booking" property="cancellableAfterBooking"/>
+        <result column="order_retention_time" property="orderRetentionTime"/>
+        <result column="arrival_time" property="arrivalTime"/>
+        <result column="remark_hotel" property="remarkHotel"/>
+        <result column="remark_channel" property="remarkChannel"/>
+        <result column="remark_agent" property="remarkAgent"/>
+        <result column="remark_guest" property="remarkGuest"/>
+        <result column="remark_special" property="remarkSpecial"/>
+        <result column="remark_invoice" property="remarkInvoice"/>
+        <result column="remark_cancel" property="remarkCancel"/>
+        <result column="company_id" property="companyId"/>
+        <result column="company_no" property="companyNo"/>
+        <result column="company_name" property="companyName"/>
+        <result column="company_tmc_id" property="companyTmcId"/>
+        <result column="company_tmc_no" property="companyTmcNo"/>
+        <result column="company_tmc_name" property="companyTmcName"/>
+        <result column="member_no_guest" property="memberNoGuest"/>
+        <result column="member_type_guest" property="memberTypeGuest"/>
+        <result column="member_no_booker" property="memberNoBooker"/>
+        <result column="member_type_booker" property="memberTypeBooker"/>
+        <result column="guest_id" property="guestId"/>
+        <result column="guest_name" property="guestName"/>
+        <result column="guest_ename" property="guestEname"/>
+        <result column="booker_id" property="bookerId"/>
+        <result column="booker_name" property="bookerName"/>
+        <result column="booking_date" property="bookingDate"/>
+        <result column="advance_booking_days" property="advanceBookingDays"/>
+        <result column="check_in_date" property="checkInDate"/>
+        <result column="check_out_date" property="checkOutDate"/>
+        <result column="stay_days" property="stayDays"/>
+        <result column="check_in_date_actual" property="checkInDateActual"/>
+        <result column="check_out_date_actual" property="checkOutDateActual"/>
+        <result column="stay_days_actual" property="stayDaysActual"/>
+        <result column="total_rooms" property="totalRooms"/>
+        <result column="total_rooms_actual" property="totalRoomsActual"/>
+        <result column="total_room_nights" property="totalRoomNights"/>
+        <result column="total_room_nights_actual" property="totalRoomNightsActual"/>
+        <result column="total_guests" property="totalGuests"/>
+        <result column="total_guests_actual" property="totalGuestsActual"/>
+        <result column="booking_type" property="bookingType"/>
+        <result column="booking_status_channel" property="bookingStatusChannel"/>
+        <result column="booking_status_hotel" property="bookingStatusHotel"/>
+        <result column="booking_status_agent" property="bookingStatusAgent"/>
+        <result column="deposit_amount_channel" property="depositAmountChannel"/>
+        <result column="deposit_amount_agent" property="depositAmountAgent"/>
+        <result column="deposit_amount_hotel" property="depositAmountHotel"/>
+        <result column="penalty_amount_channel" property="penaltyAmountChannel"/>
+        <result column="penalty_amount_hotel" property="penaltyAmountHotel"/>
+        <result column="penalty_amount_agent" property="penaltyAmountAgent"/>
+        <result column="total_price_channel" property="totalPriceChannel"/>
+        <result column="total_price_hotel" property="totalPriceHotel"/>
+        <result column="total_price_agent" property="totalPriceAgent"/>
+        <result column="total_price_channel_actual" property="totalPriceChannelActual"/>
+        <result column="total_price_hotel_actual" property="totalPriceHotelActual"/>
+        <result column="total_price_agent_actual" property="totalPriceAgentActual"/>
+        <result column="payment_date" property="paymentDate"/>
+        <result column="payment_no" property="paymentNo"/>
+        <result column="bill_date" property="billDate"/>
+        <result column="bill_no" property="billNo"/>
+        <result column="catering_fee_hotel" property="cateringFeeHotel"/>
+        <result column="banquet_fee_hotel" property="banquetFeeHotel"/>
+        <result column="other_fee_hotel" property="otherFeeHotel"/>
+        <result column="total_revenue_fee_hotel" property="totalRevenueFeeHotel"/>
+        <result column="sign" property="sign"/>
+        <result column="sales_level_a_id" property="salesLevelAId"/>
+        <result column="sales_level_a_phone" property="salesLevelAPhone"/>
+        <result column="sales_level_a_email" property="salesLevelAEmail"/>
+        <result column="sales_level_a_name" property="salesLevelAName"/>
+        <result column="sales_level_b_id" property="salesLevelBId"/>
+        <result column="sales_level_b_phone" property="salesLevelBPhone"/>
+        <result column="sales_level_b_email" property="salesLevelBEmail"/>
+        <result column="sales_level_b_name" property="salesLevelBName"/>
+        <result column="sales_level_c_id" property="salesLevelCId"/>
+        <result column="sales_level_c_phone" property="salesLevelCPhone"/>
+        <result column="sales_level_c_email" property="salesLevelCEmail"/>
+        <result column="sales_level_c_name" property="salesLevelCName"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        booking_id, chain_id, hotel_id, chain_code, chain_name, hotel_code, hotel_name,
+        room_type_code, room_type_name, rate_code, rate_code_name, package_code, package_name,
+        channel_code, channel_subcode, booker_code, agent_code, source_code, market_code,
+        booker_type, channel_resv_no, channel_resv_sno, channel_resv_pno, crs_resv_no,
+        crs_resv_pno, crs_resv_checkin_no, agent_resv_no, agent_resv_pno, hotel_resv_no,
+        hotel_resv_key, hotel_resv_confirm, hotel_room_no, payment_type, reservation_type,
+        cancellation_type, latest_cancellation_days, latest_cancellation_time,
+        cancellable_after_booking, order_retention_time, arrival_time, remark_hotel,
+        remark_channel, remark_agent, remark_guest, remark_special, remark_invoice,
+        remark_cancel, company_id, company_no, company_name, company_tmc_id, company_tmc_no,
+        company_tmc_name, member_no_guest, member_type_guest, member_no_booker,
+        member_type_booker, guest_id, guest_name, guest_ename, booker_id, booker_name,
+        booking_date, advance_booking_days, check_in_date, check_out_date, stay_days,
+        check_in_date_actual, check_out_date_actual, stay_days_actual, total_rooms,
+        total_rooms_actual, total_room_nights, total_room_nights_actual, total_guests,
+        total_guests_actual, booking_type, booking_status_channel, booking_status_hotel,
+        booking_status_agent, deposit_amount_channel, deposit_amount_agent, deposit_amount_hotel,
+        penalty_amount_channel, penalty_amount_hotel, penalty_amount_agent, total_price_channel,
+        total_price_hotel, total_price_agent, total_price_channel_actual, total_price_hotel_actual,
+        total_price_agent_actual, payment_date, payment_no, bill_date, bill_no,
+        catering_fee_hotel, banquet_fee_hotel, other_fee_hotel, total_revenue_fee_hotel,
+        sign, sales_level_a_id, sales_level_a_phone, sales_level_a_email, sales_level_a_name,
+        sales_level_b_id, sales_level_b_phone, sales_level_b_email, sales_level_b_name,
+        sales_level_c_id, sales_level_c_phone, sales_level_c_email, sales_level_c_name,
+        created_at, updated_at
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.booking.entity.Booking">
+        INSERT INTO bookings (
+            <include refid="Base_Column_List"/>
+        ) VALUES (
+            #{bookingId}, #{chainId}, #{hotelId}, #{chainCode}, #{chainName}, #{hotelCode}, #{hotelName},
+            #{roomTypeCode}, #{roomTypeName}, #{rateCode}, #{rateCodeName}, #{packageCode}, #{packageName},
+            #{channelCode}, #{channelSubcode}, #{bookerCode}, #{agentCode}, #{sourceCode}, #{marketCode},
+            #{bookerType}, #{channelResvNo}, #{channelResvSno}, #{channelResvPno}, #{crsResvNo},
+            #{crsResvPno}, #{crsResvCheckinNo}, #{agentResvNo}, #{agentResvPno}, #{hotelResvNo},
+            #{hotelResvKey}, #{hotelResvConfirm}, #{hotelRoomNo}, #{paymentType}, #{reservationType},
+            #{cancellationType}, #{latestCancellationDays}, #{latestCancellationTime},
+            #{cancellableAfterBooking}, #{orderRetentionTime}, #{arrivalTime}, #{remarkHotel},
+            #{remarkChannel}, #{remarkAgent}, #{remarkGuest}, #{remarkSpecial}, #{remarkInvoice},
+            #{remarkCancel}, #{companyId}, #{companyNo}, #{companyName}, #{companyTmcId}, #{companyTmcNo},
+            #{companyTmcName}, #{memberNoGuest}, #{memberTypeGuest}, #{memberNoBooker},
+            #{memberTypeBooker}, #{guestId}, #{guestName}, #{guestEname}, #{bookerId}, #{bookerName},
+            #{bookingDate}, #{advanceBookingDays}, #{checkInDate}, #{checkOutDate}, #{stayDays},
+            #{checkInDateActual}, #{checkOutDateActual}, #{stayDaysActual}, #{totalRooms},
+            #{totalRoomsActual}, #{totalRoomNights}, #{totalRoomNightsActual}, #{totalGuests},
+            #{totalGuestsActual}, #{bookingType}, #{bookingStatusChannel}, #{bookingStatusHotel},
+            #{bookingStatusAgent}, #{depositAmountChannel}, #{depositAmountAgent}, #{depositAmountHotel},
+            #{penaltyAmountChannel}, #{penaltyAmountHotel}, #{penaltyAmountAgent}, #{totalPriceChannel},
+            #{totalPriceHotel}, #{totalPriceAgent}, #{totalPriceChannelActual}, #{totalPriceHotelActual},
+            #{totalPriceAgentActual}, #{paymentDate}, #{paymentNo}, #{billDate}, #{billNo},
+            #{cateringFeeHotel}, #{banquetFeeHotel}, #{otherFeeHotel}, #{totalRevenueFeeHotel},
+            #{sign}, #{salesLevelAId}, #{salesLevelAPhone}, #{salesLevelAEmail}, #{salesLevelAName},
+            #{salesLevelBId}, #{salesLevelBPhone}, #{salesLevelBEmail}, #{salesLevelBName},
+            #{salesLevelCId}, #{salesLevelCPhone}, #{salesLevelCEmail}, #{salesLevelCName},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <delete id="deleteByBookingId" parameterType="java.lang.String">
+        DELETE FROM bookings WHERE booking_id = #{bookingId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.booking.entity.Booking">
+        UPDATE bookings
+        <set>
+            <if test="chainId != null">chain_id = #{chainId},</if>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="chainCode != null">chain_code = #{chainCode},</if>
+            <if test="chainName != null">chain_name = #{chainName},</if>
+            <if test="hotelCode != null">hotel_code = #{hotelCode},</if>
+            <if test="hotelName != null">hotel_name = #{hotelName},</if>
+            <if test="roomTypeCode != null">room_type_code = #{roomTypeCode},</if>
+            <if test="roomTypeName != null">room_type_name = #{roomTypeName},</if>
+            <if test="rateCode != null">rate_code = #{rateCode},</if>
+            <if test="rateCodeName != null">rate_code_name = #{rateCodeName},</if>
+            <if test="guestName != null">guest_name = #{guestName},</if>
+            <if test="bookerName != null">booker_name = #{bookerName},</if>
+            <if test="checkInDate != null">check_in_date = #{checkInDate},</if>
+            <if test="checkOutDate != null">check_out_date = #{checkOutDate},</if>
+            <if test="totalRooms != null">total_rooms = #{totalRooms},</if>
+            <if test="totalGuests != null">total_guests = #{totalGuests},</if>
+            <if test="bookingStatusHotel != null">booking_status_hotel = #{bookingStatusHotel},</if>
+            <if test="remarkCancel != null">remark_cancel = #{remarkCancel},</if>
+            updated_at = NOW()
+        </set>
+        WHERE booking_id = #{bookingId}
+    </update>
+
+    <select id="selectByBookingId" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE booking_id = #{bookingId}
+    </select>
+
+    <select id="selectAll" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="bookingId != null and bookingId != ''">
+                AND booking_id = #{bookingId}
+            </if>
+            <if test="crsResvNo != null and crsResvNo != ''">
+                AND crs_resv_no = #{crsResvNo}
+            </if>
+            <if test="channelResvNo != null and channelResvNo != ''">
+                AND channel_resv_no = #{channelResvNo}
+            </if>
+            <if test="hotelResvNo != null and hotelResvNo != ''">
+                AND hotel_resv_no = #{hotelResvNo}
+            </if>
+            <if test="guestName != null and guestName != ''">
+                AND guest_name LIKE CONCAT('%', #{guestName}, '%')
+            </if>
+            <if test="bookerName != null and bookerName != ''">
+                AND booker_name LIKE CONCAT('%', #{bookerName}, '%')
+            </if>
+            <if test="channelCodes != null and channelCodes.size() > 0">
+                AND channel_code IN
+                <foreach collection="channelCodes" item="channelCode" open="(" separator="," close=")">
+                    #{channelCode}
+                </foreach>
+            </if>
+            <if test="rateCode != null and rateCode != ''">
+                AND rate_code = #{rateCode}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode != ''">
+                AND room_type_code = #{roomTypeCode}
+            </if>
+            <if test="checkInDateStart != null">
+                AND check_in_date >= #{checkInDateStart}
+            </if>
+            <if test="checkInDateEnd != null">
+                AND check_in_date &lt;= #{checkInDateEnd}
+            </if>
+            <if test="checkOutDateStart != null">
+                AND check_out_date >= #{checkOutDateStart}
+            </if>
+            <if test="checkOutDateEnd != null">
+                AND check_out_date &lt;= #{checkOutDateEnd}
+            </if>
+            <if test="bookingStatus != null and bookingStatus.size() > 0">
+                AND booking_status_hotel IN
+                <foreach collection="bookingStatus" item="bookingStatus" open="(" separator="," close=")">
+                    #{bookingStatus}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="selectByChainId" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE chain_id = #{chainId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByHotelId" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE hotel_id = #{hotelId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByCheckInDateRange" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE check_in_date >= #{checkInDateStart}
+        AND check_in_date &lt;= #{checkInDateEnd}
+        ORDER BY check_in_date
+    </select>
+
+    <select id="selectByCheckOutDateRange" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE check_out_date >= #{checkOutDateStart}
+        AND check_out_date &lt;= #{checkOutDateEnd}
+        ORDER BY check_out_date
+    </select>
+
+    <select id="selectByGuestName" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE guest_name LIKE CONCAT('%', #{guestName}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByBookerName" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE booker_name LIKE CONCAT('%', #{bookerName}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByChannelCode" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE channel_code = #{channelCode}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByBookingStatus" resultMap="BookingResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings
+        WHERE booking_status_hotel = #{bookingStatus}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM bookings
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="bookingId != null and bookingId != ''">
+                AND booking_id = #{bookingId}
+            </if>
+            <if test="crsResvNo != null and crsResvNo != ''">
+                AND crs_resv_no = #{crsResvNo}
+            </if>
+            <if test="channelResvNo != null and channelResvNo != ''">
+                AND channel_resv_no = #{channelResvNo}
+            </if>
+            <if test="hotelResvNo != null and hotelResvNo != ''">   
+                AND hotel_resv_no = #{hotelResvNo}
+            </if>
+            <if test="guestName != null and guestName != ''">
+                AND guest_name LIKE CONCAT('%', #{guestName}, '%')
+            </if>
+            <if test="bookerName != null and bookerName != ''">
+                AND booker_name LIKE CONCAT('%', #{bookerName}, '%')
+            </if>
+            <if test="channelCodes != null and channelCodes.size() > 0">
+                AND channel_code IN
+                <foreach collection="channelCodes" item="channelCode" open="(" separator="," close=")">
+                    #{channelCode}
+                </foreach>
+            </if>
+            <if test="rateCode != null and rateCode != ''">
+                AND rate_code = #{rateCode}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode != ''">
+                AND room_type_code = #{roomTypeCode}
+            </if>
+            <if test="checkInDateStart != null">
+                AND check_in_date >= #{checkInDateStart}
+            </if>
+            <if test="checkInDateEnd != null">
+                AND check_in_date &lt;= #{checkInDateEnd}
+            </if>
+            <if test="checkOutDateStart != null">
+                AND check_out_date >= #{checkOutDateStart}
+            </if>
+            <if test="checkOutDateEnd != null">
+                AND check_out_date &lt;= #{checkOutDateEnd}
+            </if>
+            <if test="bookingStatus != null and bookingStatus.size() > 0">
+                AND booking_status_hotel IN
+                <foreach collection="bookingStatus" item="bookingStatus" open="(" separator="," close=")">
+                    #{bookingStatus}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <update id="updateConfirmNumber" parameterType="map">
+        UPDATE bookings
+        SET hotel_resv_confirm = #{confirmNumber}, 
+        booking_status_hotel = #{bookingStatus},
+        updated_at = NOW()
+        WHERE booking_id = #{bookingId}
+    </update>
+
+</mapper> 

@@ -1,7 +1,12 @@
 'use client';
+import '@ant-design/v5-patch-for-react-19';
 
 import { useState } from 'react';
 import Link from 'next/link';
+// @ts-ignore: antd may not have types installed in this environment
+import 'antd/dist/reset.css';
+// @ts-ignore: antd types might be missing
+import { Select } from 'antd';
 
 interface RateCodeGroup {
   ID: number;
@@ -13,14 +18,13 @@ interface RateCodeGroup {
   酒店代码: string;
   酒店名称: string;
   管理公司: string;
-  市场码: string;
   渠道码: string;
 }
 
 export default function RateCodeGroupPage() {
   const [groupCodes, setGroupCodes] = useState<string[]>([]);
   const [rateCode, setRateCode] = useState('');
-  const [marketCode, setMarketCode] = useState('');
+  const [channelCodes, setChannelCodes] = useState<string[]>([]);
   const [results, setResults] = useState<RateCodeGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +32,6 @@ export default function RateCodeGroupPage() {
   const [selectedRateCodes, setSelectedRateCodes] = useState<string[]>([]);
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [selectedChannelCode, setSelectedChannelCode] = useState('');
-  const [showMarketModal, setShowMarketModal] = useState(false);
-  const [selectedMarketCode, setSelectedMarketCode] = useState('');
 
   // 查询函数
   const handleQuery = async () => {
@@ -40,7 +42,7 @@ export default function RateCodeGroupPage() {
       const params = new URLSearchParams();
       if (groupCodes.length > 0) params.append('groupCodes', groupCodes.join(','));
       if (rateCode) params.append('rateCode', rateCode);
-      if (marketCode) params.append('marketCode', marketCode);
+      if (channelCodes.length > 0) params.append('channelCodes', channelCodes.join(','));
 
       const response = await fetch(`/api/product/dataconf/ratecodegroup?${params.toString()}`);
       const data = await response.json();
@@ -64,7 +66,7 @@ export default function RateCodeGroupPage() {
   const handleReset = () => {
     setGroupCodes([]);
     setRateCode('');
-    setMarketCode('');
+    setChannelCodes([]);
     setResults([]);
     setError(null);
   };
@@ -96,14 +98,27 @@ export default function RateCodeGroupPage() {
     return channelCodeMap[code] || code;
   };
 
-  // 多选处理函数
-  const handleGroupCodeChange = (code: string) => {
-    setGroupCodes(prev => 
-      prev.includes(code) 
-        ? prev.filter(c => c !== code)
-        : [...prev, code]
-    );
-  };
+  // 管理公司枚举选项
+  const groupCodeEnumOptions = [
+    { label: '建国', value: 'JG' },
+    { label: '京伦', value: 'JL' },
+    { label: '南苑', value: 'NY' },
+    { label: '云荟', value: 'NH' },
+    { label: '诺金', value: 'NI' },
+    { label: '诺岚', value: 'NU' },
+    { label: '凯宾斯基', value: 'KP' },
+    { label: '逸扉', value: 'YF' },
+    { label: '万信', value: 'WX' }
+  ];
+
+  // 渠道码枚举选项
+  const channelCodeEnumOptions = [
+    { label: '携程', value: 'CTP' },
+    { label: '美团', value: 'MDI' },
+    { label: '飞猪', value: 'OBR' },
+    { label: '商旅', value: 'CTM' },
+    { label: '官渠', value: 'WEB' }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -151,19 +166,19 @@ export default function RateCodeGroupPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 酒店管理公司
               </label>
-              <div className="flex flex-wrap gap-2">
-                {['JG','JL','NY','NH','NI','NU','KP','YF','WX'].map(code => (
-                  <label key={code} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={groupCodes.includes(code)}
-                      onChange={() => handleGroupCodeChange(code)}
-                      className="mr-1"
-                    />
-                    <span className="text-sm">{getGroupCodeDisplay(code)}</span>
-                  </label>
-                ))}
-              </div>
+              <Select
+                mode="multiple"
+                allowClear
+                showSearch
+                placeholder="选择酒店管理公司"
+                className="w-full"
+                value={groupCodes}
+                onChange={(vals) => setGroupCodes(vals as string[])}
+                options={groupCodeEnumOptions}
+                filterOption={(input, option) =>
+                  ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
+                }
+              />
             </div>
 
             {/* 房价码 */}
@@ -180,17 +195,23 @@ export default function RateCodeGroupPage() {
               />
             </div>
 
-            {/* 市场码 */}
+            {/* 渠道码 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                市场码（模糊查询）
+                渠道码
               </label>
-              <input
-                type="text"
-                placeholder="输入市场码"
-                value={marketCode}
-                onChange={(e) => setMarketCode(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Select
+                mode="multiple"
+                allowClear
+                showSearch
+                placeholder="选择渠道码"
+                className="w-full"
+                value={channelCodes}
+                onChange={(vals) => setChannelCodes(vals as string[])}
+                options={channelCodeEnumOptions}
+                filterOption={(input, option) =>
+                  ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
+                }
               />
             </div>
           </div>
@@ -201,12 +222,14 @@ export default function RateCodeGroupPage() {
               onClick={handleQuery}
               disabled={loading}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+              style={{ color: '#ffffff' }}
             >
               {loading ? '查询中...' : '查询'}
             </button>
             <button
               onClick={handleReset}
               className="bg-gray-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+              style={{ color: '#ffffff' }}
             >
               重置
             </button>
@@ -240,9 +263,6 @@ export default function RateCodeGroupPage() {
                       房价码数量
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                      市场码
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
                       渠道码
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
@@ -271,17 +291,6 @@ export default function RateCodeGroupPage() {
                           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                         >
                           {result.房价码数量}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <button
-                          onClick={() => {
-                            setSelectedMarketCode(result.市场码 || '暂无');
-                            setShowMarketModal(true);
-                          }}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
-                        >
-                          {result.市场码 || '--'}
                         </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -355,31 +364,6 @@ export default function RateCodeGroupPage() {
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
                   <button
                     onClick={() => setShowModal(false)}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    关闭
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 市场码详情弹窗 */}
-        {showMarketModal && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen px-4">
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowMarketModal(false)}></div>
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full relative z-10">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">市场码详情</h3>
-                </div>
-                <div className="px-6 py-4">
-                  <p className="text-sm text-gray-900">{selectedMarketCode}</p>
-                </div>
-                <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
-                  <button
-                    onClick={() => setShowMarketModal(false)}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                   >
                     关闭

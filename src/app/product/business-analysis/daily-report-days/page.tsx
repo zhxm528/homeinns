@@ -1,7 +1,7 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 // @ts-ignore: antd may not have types installed in this environment
 import 'antd/dist/reset.css';
@@ -19,6 +19,15 @@ export default function DailyReportDaysPage() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any[]>([]);
   const [hotelInfo, setHotelInfo] = useState<any>({});
+  const [urlParams, setUrlParams] = useState<{
+    hotelCode: string;
+    startDate: string;
+    endDate: string;
+  }>({
+    hotelCode: '',
+    startDate: '',
+    endDate: '',
+  });
 
   // 从URL参数中获取查询条件
   useEffect(() => {
@@ -31,8 +40,12 @@ export default function DailyReportDaysPage() {
         const startDate = params.get('startDate') || '';
         const endDate = params.get('endDate') || '';
 
+        // 设置URL参数状态
+        setUrlParams({ hotelCode, startDate, endDate });
+
         if (!hotelCode || !startDate || !endDate) {
           setError('缺少必要的查询参数');
+          setLoading(false);
           return;
         }
 
@@ -59,18 +72,22 @@ export default function DailyReportDaysPage() {
     fetchData();
   }, []);
 
-  const formatNumber = (value: number) => {
+  const formatNumber = useCallback((value: number) => {
     if (value === null || value === undefined || isNaN(value)) return '';
     const fixed = value.toFixed(2);
     const trimmed = fixed.replace(/\.00$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
     return trimmed.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
+  }, []);
 
-  const formatPercentage = (value: number) => {
-    if (value === null || value === undefined || isNaN(value)) return '';
-    const fixed = value.toFixed(4);
-    const trimmed = fixed.replace(/\.0000$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
-    return trimmed;
+  // formatPercentage 函数未使用，已移除
+
+  // 按日期排序的辅助函数
+  const sortDataByDate = (dataArray: any[]) => {
+    return [...dataArray].sort((a, b) => {
+      const dateA = new Date(a.日期).getTime();
+      const dateB = new Date(b.日期).getTime();
+      return dateA - dateB;
+    });
   };
 
   // 准备图表数据
@@ -116,11 +133,7 @@ export default function DailyReportDaysPage() {
     }
 
     // 按日期排序
-    const sortedData = [...data].sort((a, b) => {
-      const dateA = new Date(a.日期).getTime();
-      const dateB = new Date(b.日期).getTime();
-      return dateA - dateB;
-    });
+    const sortedData = sortDataByDate(data);
 
     const dates = sortedData.map((row) => row.日期);
     const 客房收入 = sortedData.map((row) => Number(row.客房收入) || 0);
@@ -252,18 +265,14 @@ export default function DailyReportDaysPage() {
         },
       ],
     };
-  }, [data]);
+  }, [data, formatNumber]);
 
   // 准备表格数据 - 行是指标，列是日期
   const tableData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
     // 按日期排序
-    const sortedData = [...data].sort((a, b) => {
-      const dateA = new Date(a.日期).getTime();
-      const dateB = new Date(b.日期).getTime();
-      return dateA - dateB;
-    });
+    const sortedData = sortDataByDate(data);
 
     const dates = sortedData.map((row) => row.日期);
 
@@ -316,11 +325,7 @@ export default function DailyReportDaysPage() {
     }
 
     // 按日期排序
-    const sortedData = [...data].sort((a, b) => {
-      const dateA = new Date(a.日期).getTime();
-      const dateB = new Date(b.日期).getTime();
-      return dateA - dateB;
-    });
+    const sortedData = sortDataByDate(data);
 
     const dates = sortedData.map((row) => row.日期);
 
@@ -346,18 +351,10 @@ export default function DailyReportDaysPage() {
     });
 
     return columns;
-  }, [data]);
+  }, [data, formatNumber]);
 
-  // 获取URL参数
-  const urlParams = useMemo(() => {
-    if (typeof window === 'undefined') return {};
-    const params = new URLSearchParams(window.location.search);
-    return {
-      hotelCode: params.get('hotelCode') || '',
-      startDate: params.get('startDate') || '',
-      endDate: params.get('endDate') || '',
-    };
-  }, []);
+  // 检查是否有数据
+  const hasData = data && data.length > 0;
 
   return (
     <ConfigProvider locale={zhCN}>
@@ -401,16 +398,27 @@ export default function DailyReportDaysPage() {
           </div>
 
           {/* 图表 */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <ReactECharts
-              option={chartOption}
-              style={{ height: '500px', width: '100%' }}
-              opts={{ renderer: 'canvas' }}
-            />
-          </div>
+          {hasData && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <ReactECharts
+                option={chartOption}
+                style={{ height: '500px', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            </div>
+          )}
 
           {/* 表格 */}
           <div className="bg-white rounded-lg shadow-sm p-6">
+            {!hasData && !loading && !error && (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">暂无数据</h3>
+                <p className="text-gray-500">该日期范围内没有数据</p>
+              </div>
+            )}
             <Table
               columns={tableColumns}
               dataSource={tableData}

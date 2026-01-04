@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.rateprices.mapper.RatePriceMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.zai.rateprices.entity.RatePrice">
+        <id column="price_id" property="priceId" jdbcType="VARCHAR"/>
+        <result column="chain_id" property="chainId" jdbcType="VARCHAR"/>
+        <result column="hotel_id" property="hotelId" jdbcType="VARCHAR"/>
+        <result column="hotel_code" property="hotelCode" jdbcType="VARCHAR"/>
+        <result column="rate_plan_id" property="ratePlanId" jdbcType="VARCHAR"/>
+        <result column="room_type_id" property="roomTypeId" jdbcType="VARCHAR"/>
+        <result column="room_type_code" property="roomTypeCode" jdbcType="VARCHAR"/>
+        <result column="rate_code_id" property="rateCodeId" jdbcType="VARCHAR"/>
+        <result column="rate_code" property="rateCode" jdbcType="VARCHAR"/>
+        <result column="stay_date" property="stayDate" jdbcType="DATE"/>
+        <result column="channel_single_occupancy" property="channelSingleOccupancy" jdbcType="DECIMAL"/>
+        <result column="channel_double_occupancy" property="channelDoubleOccupancy" jdbcType="DECIMAL"/>
+        <result column="hotel_single_occupancy" property="hotelSingleOccupancy" jdbcType="DECIMAL"/>
+        <result column="hotel_double_occupancy" property="hotelDoubleOccupancy" jdbcType="DECIMAL"/>
+        <result column="agent_single_occupancy" property="agentSingleOccupancy" jdbcType="DECIMAL"/>
+        <result column="agent_double_occupancy" property="agentDoubleOccupancy" jdbcType="DECIMAL"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        price_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id, room_type_code,
+        rate_code_id, rate_code, stay_date, channel_single_occupancy, channel_double_occupancy,
+        hotel_single_occupancy, hotel_double_occupancy, agent_single_occupancy, agent_double_occupancy,
+        created_at, updated_at
+    </sql>
+
+    <!-- 根据条件查询房价价格列表 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rate_prices
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode.size() > 0">
+                AND room_type_code IN
+                <foreach collection="roomTypeCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="startDate != null">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND stay_date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY stay_date ASC, created_at DESC
+    </select>
+
+    <!-- 根据房型与房价码映射关系查询房价价格列表 -->
+    <select id="selectByRoomTypeRateCodeMappings" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rate_prices
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeRateCodeMappings != null and roomTypeRateCodeMappings.size() > 0">
+                AND (
+                <foreach collection="roomTypeRateCodeMappings" item="mapping" separator=" OR ">
+                    (
+                        room_type_code = #{mapping.roomTypeCode}
+                        <if test="mapping.rateCodes != null and mapping.rateCodes.size() > 0">
+                            AND rate_code IN
+                            <foreach collection="mapping.rateCodes" item="rateCode" open="(" separator="," close=")">
+                                #{rateCode}
+                            </foreach>
+                        </if>
+                    )
+                </foreach>
+                )
+            </if>
+            <if test="startDate != null">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND stay_date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY stay_date ASC, created_at DESC
+    </select>
+
+    <!-- 根据ID查询房价价格 -->
+    <select id="selectById" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rate_prices
+        WHERE price_id = #{priceId}
+    </select>
+
+    <!-- 根据复合主键查询房价价格 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM rate_prices
+        WHERE chain_id = #{chainId}
+        AND hotel_id = #{hotelId}
+        AND rate_code = #{rateCode}
+        AND room_type_code = #{roomTypeCode}
+        AND stay_date = #{stayDate}
+    </select>
+
+    <!-- 插入房价价格 -->
+    <insert id="insert" parameterType="com.zai.rateprices.entity.RatePrice">
+        INSERT INTO rate_prices (
+            price_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id, room_type_code,
+            rate_code_id, rate_code, stay_date, channel_single_occupancy, channel_double_occupancy,
+            hotel_single_occupancy, hotel_double_occupancy, agent_single_occupancy, agent_double_occupancy,
+            created_at, updated_at
+        ) VALUES (
+            #{priceId}, #{chainId}, #{hotelId}, #{hotelCode}, #{ratePlanId}, #{roomTypeId}, #{roomTypeCode},
+            #{rateCodeId}, #{rateCode}, #{stayDate}, #{channelSingleOccupancy}, #{channelDoubleOccupancy},
+            #{hotelSingleOccupancy}, #{hotelDoubleOccupancy}, #{agentSingleOccupancy}, #{agentDoubleOccupancy},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新房价价格 -->
+    <update id="update" parameterType="com.zai.rateprices.entity.RatePrice">
+        UPDATE rate_prices
+        <set>
+            <if test="chainId != null">chain_id = #{chainId},</if>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="hotelCode != null">hotel_code = #{hotelCode},</if>
+            <if test="ratePlanId != null">rate_plan_id = #{ratePlanId},</if>
+            <if test="roomTypeId != null">room_type_id = #{roomTypeId},</if>
+            <if test="roomTypeCode != null">room_type_code = #{roomTypeCode},</if>
+            <if test="rateCodeId != null">rate_code_id = #{rateCodeId},</if>
+            <if test="rateCode != null">rate_code = #{rateCode},</if>
+            <if test="stayDate != null">stay_date = #{stayDate},</if>
+            <if test="channelSingleOccupancy != null">channel_single_occupancy = #{channelSingleOccupancy},</if>
+            <if test="channelDoubleOccupancy != null">channel_double_occupancy = #{channelDoubleOccupancy},</if>
+            <if test="hotelSingleOccupancy != null">hotel_single_occupancy = #{hotelSingleOccupancy},</if>
+            <if test="hotelDoubleOccupancy != null">hotel_double_occupancy = #{hotelDoubleOccupancy},</if>
+            <if test="agentSingleOccupancy != null">agent_single_occupancy = #{agentSingleOccupancy},</if>
+            <if test="agentDoubleOccupancy != null">agent_double_occupancy = #{agentDoubleOccupancy},</if>
+            updated_at = NOW()
+        </set>
+        WHERE price_id = #{priceId}
+    </update>
+
+    <!-- 根据ID删除房价价格 -->
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM rate_prices WHERE price_id = #{priceId}
+    </delete>
+
+    <!-- 根据复合主键删除房价价格 -->
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM rate_prices
+        WHERE chain_id = #{chainId}
+        AND hotel_id = #{hotelId}
+        AND rate_code = #{rateCode}
+        AND room_type_code = #{roomTypeCode}
+        AND stay_date = #{stayDate}
+    </delete>
+
+    <!-- 批量插入房价价格 -->
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO rate_prices (
+            price_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id, room_type_code,
+            rate_code_id, rate_code, stay_date, channel_single_occupancy, channel_double_occupancy,
+            hotel_single_occupancy, hotel_double_occupancy, agent_single_occupancy, agent_double_occupancy,
+            created_at, updated_at
+        ) VALUES
+        <foreach collection="ratePrices" item="item" separator=",">
+            (
+                #{item.priceId}, #{item.chainId}, #{item.hotelId}, #{item.hotelCode}, #{item.ratePlanId},
+                #{item.roomTypeId}, #{item.roomTypeCode}, #{item.rateCodeId}, #{item.rateCode}, #{item.stayDate},
+                #{item.channelSingleOccupancy}, #{item.channelDoubleOccupancy}, #{item.hotelSingleOccupancy},
+                #{item.hotelDoubleOccupancy}, #{item.agentSingleOccupancy}, #{item.agentDoubleOccupancy},
+                #{item.createdAt}, #{item.updatedAt}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据条件统计房价价格数量 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM rate_prices
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode.size() > 0">
+                AND room_type_code IN
+                <foreach collection="roomTypeCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="startDate != null">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND stay_date &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据房型与房价码映射关系统计房价价格数量 -->
+    <select id="countByRoomTypeRateCodeMappings" resultType="int">
+        SELECT COUNT(*)
+        FROM rate_prices
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeRateCodeMappings != null and roomTypeRateCodeMappings.size() > 0">
+                AND (
+                <foreach collection="roomTypeRateCodeMappings" item="mapping" separator=" OR ">
+                    (
+                        room_type_code = #{mapping.roomTypeCode}
+                        <if test="mapping.rateCodes != null and mapping.rateCodes.size() > 0">
+                            AND rate_code IN
+                            <foreach collection="mapping.rateCodes" item="rateCode" open="(" separator="," close=")">
+                                #{rateCode}
+                            </foreach>
+                        </if>
+                    )
+                </foreach>
+                )
+            </if>
+            <if test="startDate != null">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND stay_date &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    
+
+    <!-- 查询房型库存状态，关联酒店和房型表获取酒店名称和房型名称 -->
+    <select id="selectRoomTypeStatusWithHotel" resultType="map">
+        SELECT 
+            ris.roomtype_status_id,
+            ris.chain_id,
+            ris.hotel_id,
+            ris.hotel_code,
+            ris.rate_plan_id,
+            ris.room_type_id,
+            ris.room_type_code,
+            ris.rate_code_id,
+            ris.rate_code,
+            ris.stay_date,
+            ris.is_available,
+            ris.remaining_inventory,
+            ris.sold_inventory,
+            ris.physical_inventory,
+            h.hotel_name,
+            rt.room_type_name,
+            rt.description as room_type_description
+        FROM roomtype_inventory_status ris
+        LEFT JOIN hotels h ON ris.hotel_id = h.hotel_id
+        LEFT JOIN room_types rt ON ris.hotel_id = rt.hotel_id AND ris.room_type_code = rt.room_type_code
+        WHERE ris.hotel_id = #{hotelId}
+            AND ris.stay_date &gt;= #{startDate}
+            AND ris.stay_date &lt;= #{endDate}
+        ORDER BY ris.stay_date ASC, ris.room_type_code ASC, ris.rate_code ASC
+    </select>
+
+    <!-- 统计房型库存状态数量 -->
+    <select id="countRoomTypeStatusWithHotel" resultType="int">
+        SELECT COUNT(*)
+        FROM roomtype_inventory_status ris
+        WHERE ris.hotel_id = #{hotelId}
+        AND ris.stay_date &gt;= #{startDate}
+        AND ris.stay_date &lt;= #{endDate}
+    </select>
+
+    <!-- 根据条件查询房价价格信息 -->
+    <select id="selectRatePricesByCondition" resultType="map">
+        SELECT 
+            rp.price_id,
+            rp.chain_id,
+            rp.hotel_id,
+            rp.hotel_code,
+            rp.rate_plan_id,
+            rp.room_type_id,
+            rp.room_type_code,
+            rp.rate_code_id,
+            rp.rate_code,
+            rp.stay_date,
+            rp.channel_single_occupancy,
+            rp.channel_double_occupancy,
+            rp.hotel_single_occupancy,
+            rp.hotel_double_occupancy,
+            rp.agent_single_occupancy,
+            rp.agent_double_occupancy,
+            rp.created_at,
+            rp.updated_at,
+            ris.is_available,
+            ris.remaining_inventory,
+            ris.sold_inventory,
+            ris.physical_inventory,
+            ris.min_stay_days,
+            ris.max_stay_days,
+            ris.min_advance_days,
+            ris.max_advance_days,
+            ris.latest_cancel_days,
+            ris.latest_cancel_time_same_day,
+            ris.payment_type,
+            ris.latest_reservation_time_same_day,
+            ris.is_cancellable,
+            ris.cancel_penalty
+        FROM rate_prices rp
+        INNER JOIN rate_inventory_status ris ON rp.hotel_id = ris.hotel_id 
+            AND rp.room_type_code = ris.room_type_code 
+            AND rp.rate_code = ris.rate_code 
+            AND rp.stay_date = ris.stay_date
+            AND rp.chain_id = ris.chain_id
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND ris.chain_id = #{chainId}
+            </if>
+            <if test="hotel_id != null and hotel_id != ''">
+                AND ris.hotel_id = #{hotel_id}
+            </if>
+            <if test="stayDate != null and stayDate != ''">
+                AND ris.stay_date = #{stayDate}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode != ''">
+                AND rp.room_type_code = #{roomTypeCode}
+            </if>
+            <if test="rateCode != null and rateCode != ''">
+                AND rp.rate_code = #{rateCode}
+            </if>
+        </where>
+        ORDER BY rp.stay_date ASC
+    </select>
+
+    <select id="calendarByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM rate_prices
+        WHERE hotel_id = #{hotelId}
+        AND stay_date &gt;= #{startDate}
+        AND stay_date &lt;= #{endDate}
+        AND room_type_code IN
+        <foreach collection="roomTypeCodes" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        ORDER BY stay_date ASC
+    </select>
+
+    <select id="maintainRatePriceByHotelRoomTypeRateCode" resultType="com.zai.rateprices.entity.RatePrice">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM rate_prices
+        WHERE chain_id = #{chainId}
+        AND hotel_id = #{hotelId}
+        AND rate_code = #{rateCode}
+        AND room_type_code = #{roomTypeCode}
+        AND stay_date = #{stayDate}
+    </select>
+
+    <!-- 根据酒店ID、房价码、入住日期范围查询预订信息 -->
+    <select id="selectBookingByHotelRateCode" resultType="map">
+        SELECT 
+            rp.price_id,
+            rp.chain_id,
+            rp.hotel_id,
+            rp.hotel_code,
+            rp.rate_plan_id,
+            rp.room_type_id,
+            rp.room_type_code,
+            rp.rate_code_id,
+            rp.rate_code,
+            rp.stay_date,
+            rp.channel_single_occupancy,
+            rp.channel_double_occupancy,
+            rp.hotel_single_occupancy,
+            rp.hotel_double_occupancy,
+            rp.agent_single_occupancy,
+            rp.agent_double_occupancy,
+            rp.created_at,
+            rp.updated_at,
+            ris.is_available,
+            ris.remaining_inventory,
+            ris.sold_inventory,
+            ris.min_stay_days,
+            ris.max_stay_days,
+            ris.min_advance_days,
+            ris.max_advance_days,
+            ris.latest_cancel_days,
+            ris.latest_cancel_time_same_day,
+            ris.payment_type,
+            ris.latest_reservation_time_same_day,
+            ris.is_cancellable,
+            ris.cancel_penalty,
+            rt.room_type_name,
+            rt.description as room_type_description,
+            rc.rate_code_name,
+            rc.description as rate_code_description,
+            h.hotel_name,
+            h.address as hotel_address,
+            rpl.rate_plan_name,
+            rpl.description as rate_plan_description,
+            rpl.final_status,
+            rpl.final_inventory,
+            rpl.final_price
+        FROM rate_prices rp
+        LEFT JOIN rate_inventory_status ris ON rp.hotel_id = ris.hotel_id 
+            AND rp.room_type_code = ris.room_type_code 
+            AND rp.rate_code = ris.rate_code 
+            AND rp.stay_date = ris.stay_date
+        INNER JOIN room_types rt ON rp.hotel_id = rt.hotel_id 
+            AND rp.room_type_code = rt.room_type_code
+        INNER JOIN rate_codes rc ON rp.hotel_id = rc.hotel_id 
+            AND rp.rate_code = rc.rate_code
+        INNER JOIN hotels h ON rp.hotel_id = h.hotel_id
+        INNER JOIN rate_plans rpl ON rp.hotel_id = rpl.hotel_id 
+            AND rp.room_type_code = rpl.room_type 
+            AND rp.rate_code = rpl.rate_code
+        WHERE rp.hotel_id = #{hotelId}
+        AND rp.rate_code = #{rateCode}
+        AND rp.stay_date &gt;= #{checkIn}
+        AND rp.stay_date &lt; #{checkOut}
+        ORDER BY rp.hotel_code ASC,  
+        rp.room_type_code ASC,
+        rp.rate_code ASC, 
+        rp.stay_date ASC
+    </select>
+
+</mapper> 

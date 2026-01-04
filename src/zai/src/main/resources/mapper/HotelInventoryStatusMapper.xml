@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zai.hotelinventory.mapper.HotelInventoryStatusMapper">
+
+    <resultMap id="BaseResultMap" type="com.zai.hotelinventory.entity.HotelInventoryStatus">
+        <id column="hotel_status_id" property="hotelStatusId" />
+        <result column="chain_id" property="chainId" />
+        <result column="hotel_id" property="hotelId" />
+        <result column="hotel_code" property="hotelCode" />
+        <result column="stay_date" property="stayDate" />
+        <result column="is_available" property="isAvailable" />
+        <result column="remaining_inventory" property="remainingInventory" />
+        <result column="sold_inventory" property="soldInventory" />
+        <result column="physical_inventory" property="physicalInventory" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        chain_id,hotel_id,hotel_code,stay_date,is_available,remaining_inventory,sold_inventory,physical_inventory
+    </sql>
+
+    <select id="selectByHotelId" resultMap="BaseResultMap">
+        SELECT * FROM hotel_inventory_status WHERE hotel_id = #{hotelId}
+    </select>
+
+    <insert id="insert" parameterType="com.zai.hotelinventory.entity.HotelInventoryStatus">
+        INSERT INTO hotel_inventory_status (hotel_status_id, chain_id, hotel_id, hotel_code, stay_date, is_available, remaining_inventory, sold_inventory, physical_inventory)
+        VALUES (#{hotelStatusId}, #{chainId}, #{hotelId}, #{hotelCode}, #{stayDate}, #{isAvailable}, #{remainingInventory}, #{soldInventory}, #{physicalInventory})
+    </insert>
+
+    <update id="update" parameterType="com.zai.hotelinventory.entity.HotelInventoryStatus">
+        UPDATE hotel_inventory_status
+        SET chain_id = #{chainId}, hotel_code = #{hotelCode}, stay_date = #{stayDate}, is_available = #{isAvailable}, remaining_inventory = #{remainingInventory}, sold_inventory = #{soldInventory}, physical_inventory = #{physicalInventory}
+        WHERE hotel_status_id = #{hotelStatusId}
+    </update>
+
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM hotel_inventory_status WHERE hotel_status_id = #{hotelStatusId}
+    </delete>
+
+    <select id="calendarByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM hotel_inventory_status
+        WHERE hotel_id = #{hotelId}
+        AND stay_date &gt;= #{startDate}
+        AND stay_date &lt;= #{endDate}
+        ORDER BY stay_date ASC
+    </select>
+
+    <insert id="insertHotelInventoryStatus">
+        INSERT INTO hotel_inventory_status (
+            hotel_status_id, 
+            chain_id, 
+            hotel_id, 
+            hotel_code,
+            stay_date, 
+            is_available, 
+            remaining_inventory, 
+            sold_inventory, 
+            physical_inventory)
+        VALUES (#{hotelStatusId},
+        #{chainId}, 
+        #{hotelId}, 
+        #{hotelCode},
+        #{stayDate}, 
+        #{isAvailable}, 
+        #{remainingInventory},
+        #{soldInventory}, 
+        #{physicalInventory})
+    </insert>
+
+    <!-- 根据主键查询酒店库存状态记录 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM hotel_inventory_status
+        WHERE chain_id = #{chainId} 
+          AND hotel_id = #{hotelId} 
+          AND stay_date = #{stayDate}
+    </select>
+
+    <!-- 根据主键更新酒店库存状态记录 -->
+    <update id="updateByPrimaryKey">
+        UPDATE hotel_inventory_status
+        SET is_available = #{isAvailable},
+            remaining_inventory = #{remainingInventory},
+            sold_inventory = #{soldInventory},
+            physical_inventory = #{physicalInventory}
+        WHERE chain_id = #{chainId} 
+          AND hotel_id = #{hotelId} 
+          AND stay_date = #{stayDate}
+    </update>
+
+    <!-- 根据酒店ID和入住日期查询酒店库存状态记录 -->
+    <select id="selectByHotelIdAndStayDate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM hotel_inventory_status
+        WHERE hotel_id = #{hotelId} 
+          AND stay_date = #{stayDate}
+        LIMIT 1
+    </select>
+
+    <update id="updateCalendarHotelStatusByStayDate">
+        UPDATE hotel_inventory_status
+        SET is_available = #{isAvailable}
+        WHERE hotel_id = #{hotelId} 
+          AND stay_date = #{stayDate}
+    </update>
+</mapper> 

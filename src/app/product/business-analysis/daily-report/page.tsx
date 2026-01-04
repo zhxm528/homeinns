@@ -13,6 +13,8 @@ import type { ColumnsType } from 'antd/es/table';
 import zhCN from 'antd/locale/zh_CN';
 // @ts-ignore: dayjs types might be missing
 import dayjs from 'dayjs';
+// @ts-ignore: echarts types might be missing
+import ReactECharts from 'echarts-for-react';
 
 export default function DailyReportPage() {
   const [loading, setLoading] = useState(false);
@@ -22,18 +24,26 @@ export default function DailyReportPage() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [groupCodes, setGroupCodes] = useState<string[]>([]);
-  const [hotelCode, setHotelCode] = useState<string>('');
-  const [hotelName, setHotelName] = useState<string>('');
+  const [hotelCode, setHotelCode] = useState<string | undefined>(undefined);
+  const [hotelName, setHotelName] = useState<string | undefined>(undefined);
   const [areas, setAreas] = useState<string[]>([]);
   const [urbanAreas, setUrbanAreas] = useState<string[]>([]);
   const [provinces, setProvinces] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
+
+  // 从数据中提取选项（用于下拉框）
+  const [hotelCodeOptions, setHotelCodeOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [hotelNameOptions, setHotelNameOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [hotelOptionsLoading, setHotelOptionsLoading] = useState<boolean>(true);
 
   // 表格数据与分页
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  
+  // 存储所有数据用于图表（不分页，排除合计行）
+  const [allDataForChart, setAllDataForChart] = useState<any[]>([]);
 
   // 默认日期范围：最近30天
   const getDefaultDateRange = () => {
@@ -129,9 +139,9 @@ export default function DailyReportPage() {
         },
       },
       {
-        title: '物业类型',
-        dataIndex: '物业类型',
-        key: '物业类型',
+        title: '产权类型',
+        dataIndex: '产权类型',
+        key: '产权类型',
         width: 120,
         render: (text: string, record: any) => {
           if (record.__type === 'total') {
@@ -187,7 +197,10 @@ export default function DailyReportPage() {
         width: 120,
         align: 'right',
         render: (value: number, record: any) => {
-          const formatted = formatPercentage(value || 0);
+          // 将小数转换为百分比显示（例如：0.5455 -> 54.55%）
+          const numValue = value || 0;
+          const percentage = (numValue * 100).toFixed(2);
+          const formatted = `${percentage}%`;
           if (record.__type === 'total') {
             return <strong>{formatted}</strong>;
           }
@@ -285,18 +298,29 @@ export default function DailyReportPage() {
     try {
       setLoading(true);
       setError(null);
+      // 清空旧的图表数据，避免显示旧数据
+      setAllDataForChart([]);
+      
       const currentPage = toPage ?? page;
       const currentSize = toPageSize ?? pageSize;
-      const params = new URLSearchParams();
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
-      if (groupCodes.length > 0) params.append('groupCodes', groupCodes.join(','));
-      if (hotelCode) params.append('hotelCode', hotelCode);
-      if (hotelName) params.append('hotelName', hotelName);
-      if (areas.length > 0) params.append('areas', areas.join(','));
-      if (urbanAreas.length > 0) params.append('urbanAreas', urbanAreas.join(','));
-      if (provinces.length > 0) params.append('provinces', provinces.join(','));
-      if (cities.length > 0) params.append('cities', cities.join(','));
+      
+      // 构建查询参数（用于主查询和图表查询）
+      const buildQueryParams = () => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (groupCodes.length > 0) params.append('groupCodes', groupCodes.join(','));
+        if (hotelCode) params.append('hotelCode', hotelCode);
+        if (hotelName) params.append('hotelName', hotelName);
+        if (areas.length > 0) params.append('areas', areas.join(','));
+        if (urbanAreas.length > 0) params.append('urbanAreas', urbanAreas.join(','));
+        if (provinces.length > 0) params.append('provinces', provinces.join(','));
+        if (cities.length > 0) params.append('cities', cities.join(','));
+        return params;
+      };
+
+      // 主查询（分页数据）
+      const params = buildQueryParams();
       params.append('page', String(currentPage));
       params.append('pageSize', String(currentSize));
 
@@ -307,14 +331,63 @@ export default function DailyReportPage() {
         setTotal(json.data.total || 0);
         setPage(currentPage);
         setPageSize(currentSize);
+
+        // 从 API 响应中获取酒店编号和酒店名称选项列表
+        if (json.data && json.data.options) {
+          if (json.data.options.hotelCodes && json.data.options.hotelCodes.length > 0) {
+            console.log('[经营日报] 查询后设置酒店代码选项，数量:', json.data.options.hotelCodes.length);
+            setHotelCodeOptions(json.data.options.hotelCodes);
+          }
+          if (json.data.options.hotelNames && json.data.options.hotelNames.length > 0) {
+            console.log('[经营日报] 查询后设置酒店名称选项，数量:', json.data.options.hotelNames.length);
+            setHotelNameOptions(json.data.options.hotelNames);
+          }
+          // 确保加载状态被设置为 false
+          setHotelOptionsLoading(false);
+        } else {
+          console.warn('[经营日报] 查询响应中没有选项数据');
+          // 即使没有选项数据，也要设置加载状态为 false
+          setHotelOptionsLoading(false);
+        }
+
+        // 获取所有数据用于图表（使用相同的查询条件，但获取所有数据）
+        const allDataParams = buildQueryParams();
+        allDataParams.append('page', '1');
+        allDataParams.append('pageSize', '10000'); // 获取所有数据
+        
+        try {
+          console.log('[经营日报] 获取图表数据，查询参数:', allDataParams.toString());
+          const allDataRes = await fetch(`/api/product/business-analysis/daily-report?${allDataParams.toString()}`);
+          const allDataJson = await allDataRes.json();
+          console.log('[经营日报] 图表数据响应:', allDataJson.success, allDataJson.data?.items?.length || 0);
+          
+          if (allDataJson.success && allDataJson.data && allDataJson.data.items) {
+            // 过滤掉合计行，只保留普通数据行用于图表
+            const normalRows = allDataJson.data.items.filter((row: any) => row.__type !== 'total');
+            console.log('[经营日报] 设置图表数据，行数:', normalRows.length);
+            setAllDataForChart(normalRows);
+          } else {
+            console.warn('[经营日报] 图表数据获取失败或为空');
+            setAllDataForChart([]);
+          }
+        } catch (chartError) {
+          console.error('[经营日报] 获取图表数据失败:', chartError);
+          setAllDataForChart([]);
+        }
       } else {
         setRows([]);
         setTotal(0);
+        setAllDataForChart([]);
         setError(json.error || '加载数据失败');
+        // 即使查询失败，也要设置加载状态为 false
+        setHotelOptionsLoading(false);
       }
     } catch (e) {
       console.error('加载数据失败:', e);
       setError('网络请求失败，请检查网络连接');
+      setAllDataForChart([]);
+      // 即使请求失败，也要设置加载状态为 false
+      setHotelOptionsLoading(false);
     } finally {
       setLoading(false);
     }
@@ -325,8 +398,8 @@ export default function DailyReportPage() {
     setStartDate(defaultDates.startDate);
     setEndDate(defaultDates.endDate);
     setGroupCodes([]);
-    setHotelCode('');
-    setHotelName('');
+    setHotelCode(undefined);
+    setHotelName(undefined);
     setAreas([]);
     setUrbanAreas([]);
     setProvinces([]);
@@ -335,15 +408,260 @@ export default function DailyReportPage() {
     setPageSize(10);
     setRows([]);
     setTotal(0);
+    setAllDataForChart([]);
     setError(null);
   };
 
-  // 页面加载时自动查询
+  // 加载酒店选项列表（独立于查询，确保下拉框有数据）
+  const loadHotelOptions = async () => {
+    try {
+      setHotelOptionsLoading(true);
+      // 使用最小的查询参数来获取选项列表
+      const defaultDates = getDefaultDateRange();
+      const params = new URLSearchParams();
+      params.append('startDate', defaultDates.startDate);
+      params.append('endDate', defaultDates.endDate);
+      params.append('page', '1');
+      params.append('pageSize', '1');
+      
+      const res = await fetch(`/api/product/business-analysis/daily-report?${params.toString()}`);
+      const json = await res.json();
+      console.log('[经营日报] 加载酒店选项列表响应:', json);
+      
+      if (json.success && json.data && json.data.options) {
+        console.log('[经营日报] 选项数据:', json.data.options);
+        if (json.data.options.hotelCodes && json.data.options.hotelCodes.length > 0) {
+          console.log('[经营日报] 设置酒店代码选项，数量:', json.data.options.hotelCodes.length);
+          setHotelCodeOptions(json.data.options.hotelCodes);
+        } else {
+          console.warn('[经营日报] 酒店代码选项为空或未定义');
+        }
+        if (json.data.options.hotelNames && json.data.options.hotelNames.length > 0) {
+          console.log('[经营日报] 设置酒店名称选项，数量:', json.data.options.hotelNames.length);
+          setHotelNameOptions(json.data.options.hotelNames);
+        } else {
+          console.warn('[经营日报] 酒店名称选项为空或未定义');
+        }
+      } else {
+        console.warn('[经营日报] API 响应中没有选项数据:', json);
+      }
+    } catch (e) {
+      console.error('加载酒店选项列表失败:', e);
+    } finally {
+      setHotelOptionsLoading(false);
+    }
+  };
+
+  // 准备饼图数据：按产权类型分组统计总收入
+  const propertyTypeChartOption = useMemo(() => {
+    // 使用所有数据（不分页）用于图表
+    const normalRows = allDataForChart;
+    
+    // 按产权类型分组统计总收入
+    const groupedData: Record<string, number> = {};
+    normalRows.forEach((row: any) => {
+      const propertyType = row.产权类型 || '未知';
+      const totalRevenue = Number(row.总收入) || 0;
+      groupedData[propertyType] = (groupedData[propertyType] || 0) + totalRevenue;
+    });
+
+    // 转换为饼图数据格式
+    const chartData = Object.entries(groupedData).map(([name, value]) => ({
+      name,
+      value: Number(value.toFixed(2)),
+    }));
+
+    return {
+      title: {
+        text: '按产权类型统计总收入',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>总收入: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '总收入',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [allDataForChart]);
+
+  // 准备饼图数据：按管理公司分组统计总收入
+  const groupCodeChartOption = useMemo(() => {
+    // 使用所有数据（不分页）用于图表
+    const normalRows = allDataForChart;
+    
+    // 按管理公司分组统计总收入
+    const groupedData: Record<string, number> = {};
+    normalRows.forEach((row: any) => {
+      const groupCode = row.管理公司 || '未知';
+      const totalRevenue = Number(row.总收入) || 0;
+      groupedData[groupCode] = (groupedData[groupCode] || 0) + totalRevenue;
+    });
+
+    // 转换为饼图数据格式
+    const chartData = Object.entries(groupedData).map(([name, value]) => ({
+      name,
+      value: Number(value.toFixed(2)),
+    }));
+
+    return {
+      title: {
+        text: '按管理公司统计总收入',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>总收入: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '总收入',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [allDataForChart]);
+
+  // 准备饼图数据：按PMS类型分组统计总收入
+  const pmsTypeChartOption = useMemo(() => {
+    // 使用所有数据（不分页）用于图表
+    const normalRows = allDataForChart;
+    
+    // 按PMS类型分组统计总收入
+    const groupedData: Record<string, number> = {};
+    normalRows.forEach((row: any) => {
+      const pmsType = row.PMS类型 || '未知';
+      const totalRevenue = Number(row.总收入) || 0;
+      groupedData[pmsType] = (groupedData[pmsType] || 0) + totalRevenue;
+    });
+
+    // 转换为饼图数据格式
+    const chartData = Object.entries(groupedData).map(([name, value]) => ({
+      name,
+      value: Number(value.toFixed(2)),
+    }));
+
+    return {
+      title: {
+        text: '按PMS类型统计总收入',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>总收入: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '总收入',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [allDataForChart]);
+
+  // 页面加载时自动查询和加载选项列表
   useEffect(() => {
-    const defaultDates = getDefaultDateRange();
-    setStartDate(defaultDates.startDate);
-    setEndDate(defaultDates.endDate);
-    handleQuery(1, 10);
+    const initialize = async () => {
+      const defaultDates = getDefaultDateRange();
+      setStartDate(defaultDates.startDate);
+      setEndDate(defaultDates.endDate);
+      // 先加载酒店选项列表，等待完成后再执行查询
+      await loadHotelOptions();
+      // 然后执行查询
+      handleQuery(1, 10);
+    };
+    initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -436,20 +754,36 @@ export default function DailyReportPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">酒店代码</label>
-                <Input
-                  placeholder="输入酒店代码（模糊查询）"
-                  value={hotelCode}
-                  onChange={(e) => setHotelCode(e.target.value)}
+                <Select
                   allowClear
+                  showSearch
+                  placeholder="选择或输入酒店代码（支持自查询）..."
+                  className="w-full"
+                  value={hotelCode}
+                  onChange={(val) => setHotelCode(val || undefined)}
+                  options={hotelCodeOptions}
+                  loading={hotelOptionsLoading}
+                  notFoundContent={hotelOptionsLoading ? '加载中...' : hotelCodeOptions.length === 0 ? '无数据' : undefined}
+                  filterOption={(input, option) =>
+                    ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
+                  }
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">酒店名称</label>
-                <Input
-                  placeholder="输入酒店名称（模糊查询）"
-                  value={hotelName}
-                  onChange={(e) => setHotelName(e.target.value)}
+                <Select
                   allowClear
+                  showSearch
+                  placeholder="选择或输入酒店名称（支持自查询）..."
+                  className="w-full"
+                  value={hotelName}
+                  onChange={(val) => setHotelName(val || undefined)}
+                  options={hotelNameOptions}
+                  loading={hotelOptionsLoading}
+                  notFoundContent={hotelOptionsLoading ? '加载中...' : hotelNameOptions.length === 0 ? '无数据' : undefined}
+                  filterOption={(input, option) =>
+                    ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
+                  }
                 />
               </div>
               <div>
@@ -559,6 +893,41 @@ export default function DailyReportPage() {
                 onChange={(p, ps) => handleQuery(p, ps)}
                 showTotal={(total, range) => `${range[0]}-${range[1]} 共 ${total} 条`}
               />
+            </div>
+          </div>
+
+          {/* 饼图统计 */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* 按产权类型统计 */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ReactECharts
+                  option={propertyTypeChartOption}
+                  style={{ height: '400px', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                  notMerge={true}
+                />
+              </div>
+              
+              {/* 按管理公司统计 */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ReactECharts
+                  option={groupCodeChartOption}
+                  style={{ height: '400px', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                  notMerge={true}
+                />
+              </div>
+              
+              {/* 按PMS类型统计 */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ReactECharts
+                  option={pmsTypeChartOption}
+                  style={{ height: '400px', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                  notMerge={true}
+                />
+              </div>
             </div>
           </div>
 

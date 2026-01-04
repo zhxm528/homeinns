@@ -1,7 +1,14 @@
+'use client';
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState<number>(2024);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const footerLinks = {
     product: [
@@ -144,7 +151,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-sm" suppressHydrationWarning>
               © {currentYear} HomeInns. 保留所有权利。
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">

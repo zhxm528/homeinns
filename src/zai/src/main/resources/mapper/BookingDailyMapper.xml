@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.booking.mapper.BookingDailyMapper">
+    
+    <resultMap id="BookingDailyResultMap" type="com.zai.booking.entity.BookingDaily">
+        <id column="booking_daily_id" property="bookingDailyId"/>
+        <result column="booking_id" property="bookingId"/>
+        <result column="hotel_id" property="hotelId"/>
+        <result column="chain_id" property="chainId"/>
+        <result column="chain_code" property="chainCode"/>
+        <result column="hotel_code" property="hotelCode"/>
+        <result column="room_type_code" property="roomTypeCode"/>
+        <result column="room_type_name" property="roomTypeName"/>
+        <result column="rate_code" property="rateCode"/>
+        <result column="rate_code_name" property="rateCodeName"/>
+        <result column="package_code" property="packageCode"/>
+        <result column="package_name" property="packageName"/>
+        <result column="package_quantity" property="packageQuantity"/>
+        <result column="package_unit_price" property="packageUnitPrice"/>
+        <result column="hotel_room_no" property="hotelRoomNo"/>
+        <result column="stay_date" property="stayDate"/>
+        <result column="rooms" property="rooms"/>
+        <result column="rooms_actual" property="roomsActual"/>
+        <result column="price_channel" property="priceChannel"/>
+        <result column="price_hotel" property="priceHotel"/>
+        <result column="price_agent" property="priceAgent"/>
+        <result column="price_channel_actual" property="priceChannelActual"/>
+        <result column="price_hotel_actual" property="priceHotelActual"/>
+        <result column="price_agent_actual" property="priceAgentActual"/>
+        <result column="catering_fee_hotel" property="cateringFeeHotel"/>
+        <result column="banquet_fee_hotel" property="banquetFeeHotel"/>
+        <result column="other_fee_hotel" property="otherFeeHotel"/>
+        <result column="total_revenue_fee_hotel" property="totalRevenueFeeHotel"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        booking_daily_id, booking_id, hotel_id, chain_id, chain_code, hotel_code,
+        room_type_code, room_type_name, rate_code, rate_code_name, package_code, package_name,
+        package_quantity, package_unit_price, hotel_room_no, stay_date, rooms, rooms_actual,
+        price_channel, price_hotel, price_agent, price_channel_actual, price_hotel_actual,
+        price_agent_actual, catering_fee_hotel, banquet_fee_hotel, other_fee_hotel, total_revenue_fee_hotel
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.booking.entity.BookingDaily">
+        INSERT INTO bookings_daily (
+            <include refid="Base_Column_List"/>
+        ) VALUES (
+            #{bookingDailyId}, #{bookingId}, #{hotelId}, #{chainId}, #{chainCode}, #{hotelCode},
+            #{roomTypeCode}, #{roomTypeName}, #{rateCode}, #{rateCodeName}, #{packageCode}, #{packageName},
+            #{packageQuantity}, #{packageUnitPrice}, #{hotelRoomNo}, #{stayDate}, #{rooms}, #{roomsActual},
+            #{priceChannel}, #{priceHotel}, #{priceAgent}, #{priceChannelActual}, #{priceHotelActual},
+            #{priceAgentActual}, #{cateringFeeHotel}, #{banquetFeeHotel}, #{otherFeeHotel}, #{totalRevenueFeeHotel}
+        )
+    </insert>
+
+    <delete id="deleteByBookingDailyId" parameterType="java.lang.String">
+        DELETE FROM bookings_daily WHERE booking_daily_id = #{bookingDailyId}
+    </delete>
+
+    <delete id="deleteByBookingId" parameterType="java.lang.String">
+        DELETE FROM bookings_daily WHERE booking_id = #{bookingId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.booking.entity.BookingDaily">
+        UPDATE bookings_daily
+        <set>
+            <if test="bookingId != null">booking_id = #{bookingId},</if>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="chainId != null">chain_id = #{chainId},</if>
+            <if test="chainCode != null">chain_code = #{chainCode},</if>
+            <if test="hotelCode != null">hotel_code = #{hotelCode},</if>
+            <if test="roomTypeCode != null">room_type_code = #{roomTypeCode},</if>
+            <if test="roomTypeName != null">room_type_name = #{roomTypeName},</if>
+            <if test="rateCode != null">rate_code = #{rateCode},</if>
+            <if test="rateCodeName != null">rate_code_name = #{rateCodeName},</if>
+            <if test="packageCode != null">package_code = #{packageCode},</if>
+            <if test="packageName != null">package_name = #{packageName},</if>
+            <if test="packageQuantity != null">package_quantity = #{packageQuantity},</if>
+            <if test="packageUnitPrice != null">package_unit_price = #{packageUnitPrice},</if>
+            <if test="hotelRoomNo != null">hotel_room_no = #{hotelRoomNo},</if>
+            <if test="stayDate != null">stay_date = #{stayDate},</if>
+            <if test="rooms != null">rooms = #{rooms},</if>
+            <if test="roomsActual != null">rooms_actual = #{roomsActual},</if>
+            <if test="priceChannel != null">price_channel = #{priceChannel},</if>
+            <if test="priceHotel != null">price_hotel = #{priceHotel},</if>
+            <if test="priceAgent != null">price_agent = #{priceAgent},</if>
+            <if test="priceChannelActual != null">price_channel_actual = #{priceChannelActual},</if>
+            <if test="priceHotelActual != null">price_hotel_actual = #{priceHotelActual},</if>
+            <if test="priceAgentActual != null">price_agent_actual = #{priceAgentActual},</if>
+            <if test="cateringFeeHotel != null">catering_fee_hotel = #{cateringFeeHotel},</if>
+            <if test="banquetFeeHotel != null">banquet_fee_hotel = #{banquetFeeHotel},</if>
+            <if test="otherFeeHotel != null">other_fee_hotel = #{otherFeeHotel},</if>
+            <if test="totalRevenueFeeHotel != null">total_revenue_fee_hotel = #{totalRevenueFeeHotel},</if>
+        </set>
+        WHERE booking_daily_id = #{bookingDailyId}
+    </update>
+
+    <select id="selectByBookingDailyId" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE booking_daily_id = #{bookingDailyId}
+    </select>
+
+    <select id="selectByBookingId" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE booking_id = #{bookingId}
+        ORDER BY stay_date ASC
+    </select>
+
+    <select id="selectByHotelId" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE hotel_id = #{hotelId}
+        ORDER BY stay_date DESC
+    </select>
+
+    <select id="selectByChainId" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE chain_id = #{chainId}
+        ORDER BY stay_date DESC
+    </select>
+
+    <select id="selectByStayDate" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE stay_date = #{stayDate}
+        ORDER BY hotel_code, room_type_code
+    </select>
+
+    <select id="selectByStayDateRange" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE stay_date >= #{stayDateStart}
+        AND stay_date &lt;= #{stayDateEnd}
+        ORDER BY stay_date, hotel_code, room_type_code
+    </select>
+
+    <select id="selectByHotelIdAndStayDateRange" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE hotel_id = #{hotelId}
+        AND stay_date >= #{stayDateStart}
+        AND stay_date &lt;= #{stayDateEnd}
+        ORDER BY stay_date, room_type_code
+    </select>
+
+    <select id="selectByRoomTypeCode" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE room_type_code = #{roomTypeCode}
+        ORDER BY stay_date DESC
+    </select>
+
+    <select id="selectByRateCode" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        WHERE rate_code = #{rateCode}
+        ORDER BY stay_date DESC
+    </select>
+
+    <select id="selectAll" resultMap="BookingDailyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM bookings_daily
+        ORDER BY stay_date DESC
+    </select>
+
+    <update id="updatePrice" parameterType="com.zai.booking.entity.BookingDaily">
+        UPDATE bookings_daily
+        <set>
+            <if test="priceChannelActual != null">price_channel_actual = #{priceChannelActual},</if>
+            <if test="priceHotelActual != null">price_hotel_actual = #{priceHotelActual},</if>
+        </set>
+        WHERE booking_daily_id = #{bookingDailyId}
+    </update>
+
+</mapper> 

@@ -74,6 +74,9 @@ export class HotelService {
     hotelTypes?: string[];
     propertyTypes?: string[];
     pmsTypes?: string[];
+    areas?: string[];
+    urbanAreas?: string[];
+    cities?: string[];
     status?: number;
     isDelete?: number;
   }): Promise<HotelBaseInfo[]> {

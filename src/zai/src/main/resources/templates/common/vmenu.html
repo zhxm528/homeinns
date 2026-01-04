@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>垂直菜单</title>
+    <style>
+        /* 垂直导航栏的独立样式 */
+        .v-navbar {
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(180deg, #233876 0%, #1e88e5 100%);
+            color: #fff;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            z-index: 1000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .v-navbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .v-navbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .v-brand {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .v-brand i {
+            margin-right: 10px;
+        }
+
+        .v-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .v-nav-item {
+            position: relative;
+        }
+
+        .v-nav-link {
+            display: block;
+            padding: 15px 20px;
+            color: #fff;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .v-nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .v-nav-link i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .v-dropdown-toggle::after {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(45deg);
+            transform-origin: center center;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            margin-top: 0px;
+            transition: all 0.3s;
+            opacity: 1;
+        }
+
+        .v-dropdown-toggle.show::after {
+            opacity: 0;
+        }
+
+        .v-dropdown-menu {
+            display: none;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 0;
+            list-style: none;
+        }
+
+        .v-dropdown-menu.show {
+            display: block;
+        }
+
+        .v-dropdown-item {
+            padding: 12px 20px 12px 50px;
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .v-dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .v-dropdown-item i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* 主内容区域样式 */
+        .v-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .v-navbar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .v-navbar.show {
+                transform: translateX(0);
+            }
+
+            .v-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理下拉菜单的点击事件
+            document.querySelectorAll('.v-dropdown-toggle').forEach(function(element) {
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdownMenu = this.nextElementSibling;
+                    
+                    // 切换下拉菜单的显示状态
+                    if (dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                        this.classList.remove('show');
+                    } else {
+                        dropdownMenu.classList.add('show');
+                        this.classList.add('show');
+                    }
+                });
+            });
+
+            // 移动端菜单切换
+            const toggleButton = document.getElementById('v-menu-toggle');
+            const navbar = document.querySelector('.v-navbar');
+            
+            if (toggleButton && navbar) {
+                toggleButton.addEventListener('click', function() {
+                    navbar.classList.toggle('show');
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <nav class="v-navbar" th:fragment="vmenu">
+        <div class="v-brand">
+            <i class="fas fa-hotel"></i>酒店管理系统
+        </div>
+        <ul class="v-nav">
+            <li class="v-nav-item">
+                <a href="/" class="v-nav-link">
+                    <i class="fas fa-home"></i>首页
+                </a>
+            </li>
+            
+            <li class="v-nav-item">
+                <a href="#" class="v-nav-link v-dropdown-toggle">
+                    <i class="fas fa-building"></i>集团管理
+                </a>
+                <ul class="v-dropdown-menu">
+                    <li><a class="v-dropdown-item" href="/hotel"><i class="fas fa-hotel"></i>酒店列表</a></li>
+                    <li><a class="v-dropdown-item" href="/user"><i class="fas fa-users"></i>用户列表</a></li>
+                </ul>
+            </li>
+            
+            <li class="v-nav-item">
+                <a href="#" class="v-nav-link v-dropdown-toggle">
+                    <i class="fas fa-concierge-bell"></i>酒店管理
+                </a>
+                <ul class="v-dropdown-menu">
+                    <li><a class="v-dropdown-item" href="/roomtype"><i class="fas fa-bed"></i>房型列表</a></li>
+                    <li><a class="v-dropdown-item" href="/ratecode"><i class="fas fa-tag"></i>房价码列表</a></li>
+                    <li><a class="v-dropdown-item" href="/additionalservice"><i class="fas fa-concierge-bell"></i>包价列表</a></li>
+                    <li><a class="v-dropdown-item" href="/rateplan"><i class="fas fa-shopping-cart"></i>商品列表</a></li>
+                </ul>
+            </li>
+            
+            <li class="v-nav-item">
+                <a href="#" class="v-nav-link v-dropdown-toggle">
+                    <i class="fas fa-cogs"></i>管理员
+                </a>
+                <ul class="v-dropdown-menu">
+                    <li><a class="v-dropdown-item" href="/chain"><i class="fas fa-sitemap"></i>集团列表</a></li>
+                    <li><a class="v-dropdown-item" href="/channel"><i class="fas fa-random"></i>渠道列表</a></li>
+                    <li><a class="v-dropdown-item" href="/city"><i class="fas fa-city"></i>城市列表</a></li>
+                    <li><a class="v-dropdown-item" href="/system/settings"><i class="fas fa-sliders-h"></i>系统设置</a></li>
+                    <li><a class="v-dropdown-item" href="/system/logs"><i class="fas fa-history"></i>操作日志</a></li>
+                </ul>
+            </li>
+
+            <li class="v-nav-item">
+                <a href="#" class="v-nav-link v-dropdown-toggle">
+                    <i class="fas fa-user"></i>用户信息
+                </a>
+                <ul class="v-dropdown-menu">
+                    <li><a class="v-dropdown-item" href="/password"><i class="fas fa-key"></i>修改密码</a></li>
+                </ul>
+            </li>
+
+            <li class="v-nav-item" style="margin-top: auto;">
+                <a href="/logout" class="v-nav-link">
+                    <i class="fas fa-sign-out-alt"></i>退出系统
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 移动端菜单切换按钮 -->
+    <button id="v-menu-toggle" class="v-menu-toggle d-md-none">
+        <i class="fas fa-bars"></i>
+    </button>
+</body>
+</html> 

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 引入vmenu的头部，包含样式和脚本 -->
+    <div th:replace="common/vmenu :: head"></div>
+    <meta charset="UTF-8">
+    <title>商品管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap Table CSS -->
+    <link href="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.css" rel="stylesheet">
+    <!-- Bootstrap Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <!-- AdminLTE CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        .v-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .v-content {
+                margin-left: 0;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .search-form {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            color: #344767;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid #dee2e6;
+            border-top: none;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-xs {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 0.2rem;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="common/vmenu :: vmenu"></div>
+    <div class="v-content">
+        <div class="main-content container-fluid px-4">
+            <div class="page-header d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-th-list me-2"></i>商品管理</h2>
+                <div class="hotel-selector">
+                    <select class="selectpicker" data-live-search="true" id="hotelSelect"></select>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table id="matrixTable" class="table table-bordered table-hover">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+    <script>
+        let roomTypes = [];
+        let rateCodes = [];
+        let ratePlans = [];
+        let isRoomTypesLoaded = false;
+        let isRateCodesLoaded = false;
+
+        function showLoading() {
+            $('.loading').fadeIn(200);
+        }
+
+        function hideLoading() {
+            $('.loading').fadeOut(200);
+        }
+
+        $(document).ready(function() {
+            console.log('页面加载完成，开始初始化...');
+            $('.selectpicker').selectpicker();
+            loadHotels();
+        });
+
+        function loadHotels() {
+            showLoading();
+            console.log('开始加载酒店列表...');
+            
+            // 先获取当前会话中的酒店信息
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(sessionRes) {
+                    console.log('获取会话信息成功：', sessionRes);
+                    const sessionHotelId = sessionRes.success ? sessionRes.data.hotelId : null;
+                    
+                    // 加载酒店列表
+                    $.ajax({ 
+                        url: '/api/hotels/current-chain', 
+                        type: 'GET', 
+                        success: function(res) {
+                            console.log('酒店列表加载成功：', res);
+                            if (res.success) {
+                                const sel = $('#hotelSelect').empty();
+                                res.data.forEach(h => sel.append($('<option>', { value: h.hotelId, text: h.hotelName }))); 
+                                sel.selectpicker('refresh');
+                                
+                                // 如果会话中有酒店ID，则选中对应酒店
+                                if (sessionHotelId) {
+                                    console.log('选中会话中的酒店：', sessionHotelId);
+                                    sel.val(sessionHotelId).selectpicker('refresh');
+                                    loadRoomTypes();
+                                    loadRateCodes();
+                                }
+                                // 如果会话中没有酒店ID，且有酒店数据，自动选择第一个
+                                else if (res.data.length > 0) {
+                                    const firstHotel = res.data[0];
+                                    console.log('自动选择第一个酒店：', firstHotel);
+                                    sel.val(firstHotel.hotelId).selectpicker('refresh');
+                                    
+                                    // 触发酒店选择事件
+                                    $.ajax({
+                                        url: '/api/session/hotel',
+                                        type: 'POST',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ 
+                                            hotelId: firstHotel.hotelId, 
+                                            hotelName: firstHotel.hotelName 
+                                        }),
+                                        success: function(res) {
+                                            if (res.success) {
+                                                loadRoomTypes();
+                                                loadRateCodes();
+                                            } else {
+                                                alert('更新酒店失败：' + res.message);
+                                            }
+                                        },
+                                        error: function(xhr) {
+                                            console.error('更新酒店失败：', xhr);
+                                            alert('更新酒店失败：' + xhr.responseText);
+                                        }
+                                    });
+                                }
+                                
+                                // 绑定酒店选择变化事件
+                                sel.off('changed.bs.select').on('changed.bs.select', function(event, clickedIndex, isSelected, previousValue) {
+                                    const hotelId = $(this).val();
+                                    const hotelName = $(this).find('option:selected').text();
+                                    console.log('酒店选择变化：', {
+                                        hotelId: hotelId,
+                                        hotelName: hotelName
+                                    });
+                                    
+                                    // 显示加载提示
+                                    showLoading();
+                                    
+                                    $.ajax({
+                                        url: '/api/session/hotel',
+                                        type: 'POST',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ hotelId: hotelId, hotelName: hotelName }),
+                                        success: function(res) {
+                                            if (res.success) {
+                                                // 显示成功提示
+                                                alert('已切换到酒店：' + hotelName);
+                                                loadRoomTypes();
+                                                loadRateCodes();
+                                            } else {
+                                                alert('更新酒店失败：' + res.message);
+                                            }
+                                        },
+                                        error: function(xhr) {
+                                            console.error('更新酒店失败：', xhr);
+                                            alert('更新酒店失败：' + xhr.responseText);
+                                        },
+                                        complete: function() {
+                                            hideLoading();
+                                        }
+                                    });
+                                });
+                            } else {
+                                console.error('加载酒店列表失败：', res.message);
+                                alert('加载酒店列表失败：' + res.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('加载酒店列表失败：', xhr);
+                            alert('加载酒店列表失败：' + xhr.responseText);
+                        },
+                        complete: function() {
+                            hideLoading();
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    console.error('获取会话信息失败：', xhr);
+                    alert('获取会话信息失败：' + xhr.responseText);
+                    hideLoading();
+                }
+            });
+        }
+
+        function checkAndRenderMatrix() {
+            console.log('检查数据加载状态：', {
+                roomTypesLoaded: isRoomTypesLoaded,
+                rateCodesLoaded: isRateCodesLoaded,
+                roomTypesCount: roomTypes.length,
+                rateCodesCount: rateCodes.length
+            });
+
+            if (isRoomTypesLoaded && isRateCodesLoaded) {
+                console.log('所有数据加载完成，开始渲染表格');
+                renderMatrixHeader();
+                renderMatrixBody();
+                loadRatePlans();
+            }
+        }
+
+        function loadRoomTypes() {
+            showLoading();
+            console.log('开始加载房型列表...');
+            isRoomTypesLoaded = false;
+            
+            // 先获取当前会话中的酒店ID
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(sessionRes) {
+                    if (!sessionRes.success || !sessionRes.data.hotelId) {
+                        console.error('获取会话信息失败或未选择酒店');
+                        alert('请先选择酒店');
+                        hideLoading();
+                        return;
+                    }
+
+                    const hotelId = sessionRes.data.hotelId;
+                    console.log('当前酒店ID：', hotelId);
+
+                    // 使用酒店ID加载房型列表
+                    $.ajax({ 
+                        url: '/api/roomtypes/list', 
+                        type: 'GET',
+                        data: { hotelId: hotelId },
+                        success: function(res) {
+                            console.log('房型列表加载成功：', res);
+                            if (res.success) {
+                                roomTypes = res.data.sort((a,b) => a.roomTypeName.localeCompare(b.roomTypeName));
+                                console.log('房型数量：', roomTypes.length);
+                                isRoomTypesLoaded = true;
+                                checkAndRenderMatrix();
+                            } else {
+                                console.error('加载房型列表失败：', res.message);
+                                alert('加载房型列表失败：' + res.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('加载房型列表失败：', xhr);
+                            alert('加载房型列表失败：' + xhr.responseText);
+                        },
+                        complete: function() {
+                            hideLoading();
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    console.error('获取会话信息失败：', xhr);
+                    alert('获取会话信息失败：' + xhr.responseText);
+                    hideLoading();
+                }
+            });
+        }
+
+        function loadRateCodes() {
+            showLoading();
+            console.log('开始加载价格代码列表...');
+            isRateCodesLoaded = false;
+            
+            // 先获取当前会话中的酒店ID
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(sessionRes) {
+                    if (!sessionRes.success || !sessionRes.data.hotelId) {
+                        console.error('获取会话信息失败或未选择酒店');
+                        alert('请先选择酒店');
+                        hideLoading();
+                        return;
+                    }
+
+                    const hotelId = sessionRes.data.hotelId;
+                    console.log('当前酒店ID：', hotelId);
+
+                    // 使用酒店ID加载价格代码列表
+                    $.ajax({ 
+                        url: '/api/ratecodes/list', 
+                        type: 'GET',
+                        data: { hotelId: hotelId },
+                        success: function(res) {
+                            console.log('价格代码列表加载成功：', res);
+                            if (res.success) {
+                                rateCodes = res.data.sort((a,b) => a.rateCodeName.localeCompare(b.rateCodeName));
+                                console.log('价格代码数量：', rateCodes.length);
+                                isRateCodesLoaded = true;
+                                checkAndRenderMatrix();
+                            } else {
+                                console.error('加载价格代码列表失败：', res.message);
+                                alert('加载价格代码列表失败：' + res.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('加载价格代码列表失败：', xhr);
+                            alert('加载价格代码列表失败：' + xhr.responseText);
+                        },
+                        complete: function() {
+                            hideLoading();
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    console.error('获取会话信息失败：', xhr);
+                    alert('获取会话信息失败：' + xhr.responseText);
+                    hideLoading();
+                }
+            });
+        }
+
+        function loadRatePlans() {
+            if (!roomTypes.length || !rateCodes.length) {
+                console.log('房型或价格代码未加载完成，跳过加载商品');
+                return;
+            }
+            
+            showLoading();
+            console.log('开始加载商品列表...');
+            $.ajax({ 
+                url: '/api/rateplans/list', 
+                type: 'GET', 
+                success: function(res) {
+                    console.log('商品列表加载成功：', res);
+                    if (res.success) {
+                        ratePlans = res.data;
+                        renderMatrix();
+                    } else {
+                        console.error('加载商品列表失败：', res.message);
+                        alert('加载商品列表失败：' + res.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('加载商品列表失败：', xhr);
+                    alert('加载商品列表失败：' + xhr.responseText);
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+
+        function renderMatrixHeader() {
+            console.log('渲染表格头部...');
+            const thead = $('#matrixTable thead').empty();
+            const row = $('<tr>');
+            // 第一列显示"房价码"
+            row.append('<th style="width: 200px;">房价码</th>');
+            // 从第二列开始显示房型名称
+            roomTypes.forEach(rt => {
+                row.append($('<th>').text(rt.roomTypeName));
+            });
+            thead.append(row);
+        }
+
+        function renderMatrixBody() {
+            console.log('开始渲染表格内容...');
+            console.log('当前价格代码数量：', rateCodes.length);
+            console.log('当前房型数量：', roomTypes.length);
+            
+            const tbody = $('#matrixTable tbody').empty();
+            
+            // 遍历所有房价码
+            rateCodes.forEach((rc, index) => {
+                console.log('处理第', index + 1, '个价格代码：', rc.rateCodeName);
+                const tr = $('<tr>');
+                // 第一列显示房价码名称
+                tr.append($('<td>').text(rc.rateCodeName));
+                
+                // 遍历所有房型，创建复选框
+                roomTypes.forEach((rt, rtIndex) => {
+                    console.log('处理第', rtIndex + 1, '个房型：', rt.roomTypeName);
+                    const td = $('<td>').addClass('text-center');
+                    const key = rc.rateCodeId + '_' + rt.roomTypeId;
+                    
+                    // 创建简单的复选框
+                    const checkbox = $('<input type="checkbox">')
+                        .attr('id', key)
+                        .attr('data-rc', rc.rateCodeId)
+                        .attr('data-rt', rt.roomTypeId)
+                        .css({
+                            'width': '20px',
+                            'height': '20px',
+                            'cursor': 'pointer'
+                        })
+                        .on('change', function() {
+                            const rateCodeId = $(this).data('rc');
+                            const roomTypeId = $(this).data('rt');
+                            const isChecked = $(this).prop('checked');
+                            
+                            if (isChecked) {
+                                // 创建新的rateplans记录
+                                createRatePlan(rateCodeId, roomTypeId);
+                            } else {
+                                // 删除对应的rateplans记录
+                                deleteRatePlan(rateCodeId, roomTypeId);
+                            }
+                        });
+                    
+                    td.append(checkbox);
+                    tr.append(td);
+                });
+                tbody.append(tr);
+            });
+            
+            console.log('表格内容渲染完成');
+        }
+
+        function renderMatrix() {
+            console.log('更新复选框状态...');
+            // 根据已存在的rateplans记录，设置复选框状态
+            ratePlans.forEach(rp => {
+                const id = rp.rateCodeId + '_' + rp.roomTypeId;
+                $('#' + id).prop('checked', true);
+            });
+        }
+
+        function createRatePlan(rateCodeId, roomTypeId) {
+            console.log('创建商品：', { rateCodeId, roomTypeId });
+            $.ajax({ 
+                url: '/api/rateplans', 
+                type: 'POST', 
+                contentType: 'application/json',
+                data: JSON.stringify({ rateCodeId, roomTypeId }), 
+                success: function(res) {
+                    if (!res.success) {
+                        alert('创建商品失败：' + res.message);
+                        // 恢复复选框状态
+                        $('#' + rateCodeId + '_' + roomTypeId).prop('checked', false);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('创建商品失败：', xhr);
+                    alert('创建商品失败：' + xhr.responseText);
+                    // 恢复复选框状态
+                    $('#' + rateCodeId + '_' + roomTypeId).prop('checked', false);
+                }
+            });
+        }
+
+        function deleteRatePlan(rateCodeId, roomTypeId) {
+            console.log('删除商品：', { rateCodeId, roomTypeId });
+            $.ajax({ 
+                url: '/api/rateplans?rateCodeId=' + rateCodeId + '&roomTypeId=' + roomTypeId,
+                type: 'DELETE', 
+                success: function(res) {
+                    if (!res.success) {
+                        alert('删除商品失败：' + res.message);
+                        // 恢复复选框状态
+                        $('#' + rateCodeId + '_' + roomTypeId).prop('checked', true);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('删除商品失败：', xhr);
+                    alert('删除商品失败：' + xhr.responseText);
+                    // 恢复复选框状态
+                    $('#' + rateCodeId + '_' + roomTypeId).prop('checked', true);
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

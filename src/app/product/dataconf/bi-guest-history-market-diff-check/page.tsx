@@ -36,7 +36,16 @@ export default function BiGuestHistoryMarketDiffCheckPage() {
   const [pageSize, setPageSize] = useState<number>(10);
 
   // 默认日期范围：最近7天
+  // 注意：这个函数只在客户端调用，避免在服务器端渲染时产生不同的日期
   const getDefaultDateRange = () => {
+    // 确保只在客户端执行
+    if (typeof window === 'undefined') {
+      // 服务器端返回固定值，避免 hydration 不匹配
+      return {
+        startDate: '',
+        endDate: '',
+      };
+    }
     const endDate = dayjs();
     const startDate = dayjs().subtract(6, 'day');
     return {

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 引入vmenu的头部，包含样式和脚本 -->
+    <div th:replace="common/vmenu :: head"></div>
+    <meta charset="UTF-8">
+    <title>价格代码管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap Table CSS -->
+    <link href="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.css" rel="stylesheet">
+    <!-- Bootstrap Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <!-- AdminLTE CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        .v-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .v-content {
+                margin-left: 0;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .search-form {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            color: #344767;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid #dee2e6;
+            border-top: none;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-xs {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 0.2rem;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 引入垂直导航栏 -->
+    <div th:replace="common/vmenu :: vmenu"></div>
+    
+    <!-- 主内容区域 -->
+    <div class="v-content">
+        <div class="main-content">
+            <div class="container-fluid px-4">
+                <div class="page-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0"><i class="fas fa-tags me-2"></i>价格代码管理</h2>
+                        <div class="hotel-selector">
+                            <select class="selectpicker" data-live-search="true" title="选择酒店" id="hotelSelect">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-form">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="searchKeyword" placeholder="价格代码/价格代码名称">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary" onclick="searchRateCodes()">
+                                <i class="fas fa-search me-1"></i>搜索
+                            </button>
+                            <button type="button" class="btn btn-success ms-2" onclick="showAddRateCodeModal()">
+                                <i class="fas fa-plus me-1"></i>新增
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="rateCodeTable" class="table">
+                        <thead>
+                            <tr>
+                                <th data-field="hotelName">所属酒店</th>
+                                <th data-field="rateCodeId" data-visible="false">价格代码ID</th>
+                                <th data-field="rateCode">价格代码</th>
+                                <th data-field="rateCodeName">价格代码名称</th>
+                                <th data-field="description">描述</th>
+                                <th data-field="operate" data-formatter="operateFormatter" data-align="center">操作</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑价格代码模态框 -->
+    <div class="modal fade" id="rateCodeModal" tabindex="-1" role="dialog" aria-labelledby="rateCodeModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="rateCodeModalLabel">新增价格代码</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>所属集团：<span id="chainName" class="text-primary"></span></label>
+                    </div>
+                    <div class="form-group">
+                        <label>所属酒店：<span id="hotelName" class="text-primary"></span></label>
+                    </div>
+                    <form id="rateCodeForm">
+                        <input type="hidden" id="rateCodeId" name="rateCodeId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="rateCode">价格代码</label>
+                                    <input type="text" class="form-control" id="rateCode" name="rateCode" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="rateCodeName">价格代码名称</label>
+                                    <input type="text" class="form-control" id="rateCodeName" name="rateCodeName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="marketCode">市场代码</label>
+                                    <input type="text" class="form-control" id="marketCode" name="marketCode">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="minlos">最小入住天数</label>
+                                    <input type="number" class="form-control" id="minlos" name="minlos">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="maxlos">最大入住天数</label>
+                                    <input type="number" class="form-control" id="maxlos" name="maxlos">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="minadv">最小提前预订天数</label>
+                                    <input type="number" class="form-control" id="minadv" name="minadv">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="maxadv">最大提前预订天数</label>
+                                    <input type="number" class="form-control" id="maxadv" name="maxadv">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="limitStartTime">限时开始时间</label>
+                                    <input type="time" class="form-control" id="limitStartTime" name="limitStartTime">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="limitEndTime">限时结束时间</label>
+                                    <input type="time" class="form-control" id="limitEndTime" name="limitEndTime">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="priceModifier">价格调整</label>
+                                    <input type="number" step="0.01" class="form-control" id="priceModifier" name="priceModifier">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="isPercentage">是否为百分比</label>
+                                    <select class="form-control" id="isPercentage" name="isPercentage">
+                                        <option value="false">否</option>
+                                        <option value="true">是</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="validFrom">有效期开始日期</label>
+                                    <input type="date" class="form-control" id="validFrom" name="validFrom">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="validTo">有效期结束日期</label>
+                                    <input type="date" class="form-control" id="validTo" name="validTo">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reservationType">预订类型代码</label>
+                                    <input type="text" class="form-control" id="reservationType" name="reservationType">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cancellationType">取消规则代码</label>
+                                    <input type="text" class="form-control" id="cancellationType" name="cancellationType">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="latestCancellationDays">至少提前天数几天取消</label>
+                                    <input type="number" class="form-control" id="latestCancellationDays" name="latestCancellationDays">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="latestCancellationTime">当天最晚取消时间</label>
+                                    <input type="time" class="form-control" id="latestCancellationTime" name="latestCancellationTime">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cancellableAfterBooking">预订后是否可取消</label>
+                                    <select class="form-control" id="cancellableAfterBooking" name="cancellableAfterBooking">
+                                        <option value="false">否</option>
+                                        <option value="true">是</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="orderRetentionTime">订单最晚保留时间</label>
+                                    <input type="time" class="form-control" id="orderRetentionTime" name="orderRetentionTime">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="stayStartDate">可入住开始日期</label>
+                                    <input type="date" class="form-control" id="stayStartDate" name="stayStartDate">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="stayEndDate">可入住结束日期</label>
+                                    <input type="date" class="form-control" id="stayEndDate" name="stayEndDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="bookingStartDate">预订窗口开始日期</label>
+                                    <input type="date" class="form-control" id="bookingStartDate" name="bookingStartDate">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="bookingEndDate">预订窗口结束日期</label>
+                                    <input type="date" class="form-control" id="bookingEndDate" name="bookingEndDate">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRateCode()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    <!-- 引入酒店选择器 -->
+    <script th:src="@{/js/selecthotel.js}"></script>
+    
+    <script>
+        let $table = $('#rateCodeTable');
+        let $modal = $('#rateCodeModal');
+        let isEdit = false;
+
+        function showLoading() {
+            $('.loading').fadeIn(200);
+        }
+
+        function hideLoading() {
+            $('.loading').fadeOut(200);
+        }
+
+        function dateFormatter(value) {
+            if (!value) return '';
+            return new Date(value).toLocaleString();
+        }
+
+        $(document).ready(function() {
+            console.log('页面加载完成，开始初始化...');
+            // 初始化酒店选择器
+            new HotelSelector('#hotelSelect', function() {
+                // 当酒店选择器初始化完成后，刷新表格数据
+                $table.bootstrapTable('refresh');
+            });
+            initTable();
+        });
+
+        function initTable() {
+            console.log('开始初始化表格...');
+            $table.bootstrapTable({
+                url: '/api/ratecodes/list',
+                method: 'get',
+                queryParams: function(params) {
+                    console.log('查询参数：', params);
+                    return {
+                        keyword: $('#searchKeyword').val()
+                    };
+                },
+                responseHandler: function(res) {
+                    console.log('服务器响应数据：', res);
+                    if (res.success) {
+                        return res.data;
+                    }
+                    return [];
+                },
+                columns: [{
+                    field: 'hotelName',
+                    title: '所属酒店'
+                }, {
+                    field: 'rateCodeId',
+                    title: '价格代码ID',
+                    visible: false
+                }, {
+                    field: 'rateCode',
+                    title: '价格代码'
+                }, {
+                    field: 'rateCodeName',
+                    title: '价格代码名称'
+                }, {
+                    field: 'description',
+                    title: '描述'
+                }, {
+                    field: 'operate',
+                    title: '操作',
+                    formatter: operateFormatter,
+                    align: 'center'
+                }],
+                pagination: true,
+                sidePagination: 'client',
+                pageSize: 10,
+                pageList: [10, 25, 50, 100],
+                search: false,
+                showRefresh: false,
+                showToggle: false,
+                showColumns: false,
+                toolbar: '#toolbar',
+                formatNoMatches: function() {
+                    return '没有符合条件的价格代码';
+                },
+                formatShowingRows: function(pageFrom, pageTo, totalRows) {
+                    return '显示第 ' + pageFrom + ' 到第 ' + pageTo + ' 条记录，总共 ' + totalRows + ' 条记录';
+                },
+                onLoadSuccess: function(data) {
+                    console.log('表格数据加载成功，数据：', data);
+                },
+                onLoadError: function(status, jqXHR) {
+                    console.error('表格数据加载失败，状态码：', status, '错误信息：', jqXHR);
+                }
+            });
+        }
+
+        function operateFormatter(value, row) {
+            console.log('格式化操作列，row:', row);
+            if (!row) {
+                console.error('行数据为空');
+                return '';
+            }
+            // 检查rateCodeId是否存在，即使为空字符串也允许显示操作按钮
+            if (row.rateCodeId === undefined) {
+                console.error('行数据中没有rateCodeId字段');
+                return '';
+            }
+            return [
+                '<button class="btn btn-xs btn-outline-primary" onclick="editRateCode(\'' + row.rateCodeId + '\')">',
+                '<i class="fas fa-edit"></i>',
+                '</button> ',
+                '<button class="btn btn-xs btn-outline-danger" onclick="deleteRateCode(\'' + row.rateCodeId + '\')">',
+                '<i class="fas fa-trash"></i>',
+                '</button>'
+            ].join('');
+        }
+
+        function searchRateCodes() {
+            console.log('搜索关键字：', $('#searchKeyword').val());
+            $table.bootstrapTable('refresh');
+        }
+
+        function showAddRateCodeModal() {
+            $('#rateCodeModalLabel').text('新增价格代码');
+            $('#rateCodeForm')[0].reset();
+            $('#rateCodeId').val('');
+            
+            // 显示集团名称和酒店名称
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        $('#chainName').text(response.data.chainName || '未选择');
+                        $('#hotelName').text(response.data.hotelName || '未选择');
+                    }
+                }
+            });
+            
+            $('#rateCodeModal').modal('show');
+        }
+
+        function editRateCode(id) {
+            showLoading();
+            isEdit = true;
+            console.log('开始获取价格代码数据，ID:', id);
+            
+            $.ajax({
+                url: '/api/ratecodes/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('服务器响应:', response);
+                    
+                    if (!response) {
+                        console.error('服务器返回空响应');
+                        alert('获取价格代码信息失败：服务器返回空响应');
+                        return;
+                    }
+                    
+                    // 检查响应格式
+                    if (response.success === false) {
+                        console.error('服务器返回错误:', response.message);
+                        alert('获取价格代码信息失败：' + response.message);
+                        return;
+                    }
+                    
+                    // 获取实际数据
+                    const data = response.data || response;
+                    console.log('解析后的价格代码数据:', data);
+                    
+                    if (!data) {
+                        console.error('价格代码数据为空');
+                        alert('获取价格代码信息失败：价格代码数据为空');
+                        return;
+                    }
+                    
+                    // 设置表单值
+                    $('#rateCodeId').val(data.rateCodeId || '');
+                    $('#rateCode').val(data.rateCode || '');
+                    $('#rateCodeName').val(data.rateCodeName || '');
+                    $('#description').val(data.description || '');
+                    $('#marketCode').val(data.marketCode || '');
+                    $('#minlos').val(data.minlos || '');
+                    $('#maxlos').val(data.maxlos || '');
+                    $('#minadv').val(data.minadv || '');
+                    $('#maxadv').val(data.maxadv || '');
+                    $('#limitStartTime').val(data.limitStartTime || '');
+                    $('#limitEndTime').val(data.limitEndTime || '');
+                    $('#priceModifier').val(data.priceModifier || '');
+                    $('#isPercentage').val(data.isPercentage ? 'true' : 'false');
+                    $('#validFrom').val(data.validFrom || '');
+                    $('#validTo').val(data.validTo || '');
+                    $('#reservationType').val(data.reservationType || '');
+                    $('#cancellationType').val(data.cancellationType || '');
+                    $('#latestCancellationDays').val(data.latestCancellationDays || '');
+                    $('#latestCancellationTime').val(data.latestCancellationTime || '');
+                    $('#cancellableAfterBooking').val(data.cancellableAfterBooking ? 'true' : 'false');
+                    $('#orderRetentionTime').val(data.orderRetentionTime || '');
+                    $('#stayStartDate').val(data.stayStartDate || '');
+                    $('#stayEndDate').val(data.stayEndDate || '');
+                    $('#bookingStartDate').val(data.bookingStartDate || '');
+                    $('#bookingEndDate').val(data.bookingEndDate || '');
+                    
+                    // 获取集团信息
+                    if (data.chainId) {
+                        $.ajax({
+                            url: '/api/chains/' + data.chainId,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(chainResponse) {
+                                console.log('集团信息响应:', chainResponse);
+                                const chainData = chainResponse.data || chainResponse;
+                                $('#chainName').text(chainData.chainName || '未选择');
+                            },
+                            error: function(jqXHR) {
+                                console.error('获取集团信息失败:', jqXHR);
+                                $('#chainName').text('未选择');
+                            }
+                        });
+                    } else {
+                        $('#chainName').text('未选择');
+                    }
+                    
+                    // 设置显示文本
+                    $('#hotelName').text(data.hotelName || '未选择');
+                    
+                    // 设置模态框标题
+                    $('#rateCodeModalLabel').text('编辑价格代码');
+                    
+                    // 显示模态框
+                    $('#rateCodeModal').modal('show');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('请求失败:', {
+                        status: jqXHR.status,
+                        statusText: jqXHR.statusText,
+                        responseText: jqXHR.responseText,
+                        textStatus: textStatus,
+                        errorThrown: errorThrown
+                    });
+                    alert('加载价格代码信息失败：' + (jqXHR.responseText || errorThrown));
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+
+        function deleteRateCode(id) {
+            if (!confirm('确定要删除该价格代码吗？')) return;
+
+            showLoading();
+            $.ajax({
+                url: '/api/ratecodes/' + id,
+                type: 'DELETE',
+                success: function() {
+                    $table.bootstrapTable('refresh');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting rate code:', error);
+                    alert('删除失败：' + (xhr.responseText || '未知错误'));
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+
+        function saveRateCode() {
+            // 从服务器获取 Session 信息
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        var hotelId = response.data.hotelId;
+                        if (!hotelId) {
+                            alert('当前酒店为空，请先选择酒店后再操作价格代码');
+                            return;
+                        }
+
+                        var rateCodeData = {
+                            rateCodeId: $('#rateCodeId').val(),
+                            rateCode: $('#rateCode').val(),
+                            rateCodeName: $('#rateCodeName').val(),
+                            description: $('#description').val(),
+                            marketCode: $('#marketCode').val(),
+                            minlos: $('#minlos').val(),
+                            maxlos: $('#maxlos').val(),
+                            minadv: $('#minadv').val(),
+                            maxadv: $('#maxadv').val(),
+                            limitStartTime: $('#limitStartTime').val(),
+                            limitEndTime: $('#limitEndTime').val(),
+                            priceModifier: $('#priceModifier').val(),
+                            isPercentage: $('#isPercentage').val() === 'true',
+                            validFrom: $('#validFrom').val(),
+                            validTo: $('#validTo').val(),
+                            reservationType: $('#reservationType').val(),
+                            cancellationType: $('#cancellationType').val(),
+                            latestCancellationDays: $('#latestCancellationDays').val(),
+                            latestCancellationTime: $('#latestCancellationTime').val(),
+                            cancellableAfterBooking: $('#cancellableAfterBooking').val() === 'true',
+                            orderRetentionTime: $('#orderRetentionTime').val(),
+                            stayStartDate: $('#stayStartDate').val(),
+                            stayEndDate: $('#stayEndDate').val(),
+                            bookingStartDate: $('#bookingStartDate').val(),
+                            bookingEndDate: $('#bookingEndDate').val(),
+                            hotelId: hotelId
+                        };
+
+                        // 根据是否有rateCodeId决定是新增还是编辑
+                        var url = '/api/ratecodes';
+                        var method = 'POST';
+                        
+                        if (rateCodeData.rateCodeId) {
+                            url += '/' + rateCodeData.rateCodeId;
+                            method = 'PUT';
+                        }
+
+                        $.ajax({
+                            url: url,
+                            type: method,
+                            contentType: 'application/json',
+                            data: JSON.stringify(rateCodeData),
+                            success: function(response) {
+                                $('#rateCodeModal').modal('hide');
+                                $table.bootstrapTable('refresh');
+                            },
+                            error: function(xhr) {
+                                alert('保存失败：' + xhr.responseText);
+                            }
+                        });
+                    } else {
+                        alert('获取会话信息失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('获取会话信息失败：' + xhr.responseText);
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

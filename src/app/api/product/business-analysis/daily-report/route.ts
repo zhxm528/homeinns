@@ -84,7 +84,7 @@ SELECT
     b.HotelName AS 酒店名称,
     b.GroupCode AS 管理公司,
     b.PMSType AS PMS类型,
-    b.PropertyType AS 物业类型,
+    b.PropertyType AS 产权类型,
     b.MDMCity AS 城市编码,
     SUM(a.rms_ttl) AS 房间总数,
     SUM(a.rms_occ) AS 已入住房数,
@@ -126,16 +126,41 @@ GROUP BY
     console.log('[经营日报] 查询SQL:', sql);
     console.log('[经营日报] 查询参数:', { startDate, endDate, groupCodes, hotelCode, hotelName, areas, urbanAreas, provinces, cities });
 
-    // 执行查询
-    let results: any[];
+    // 初始化数据库连接（确保在查询选项列表之前连接已建立）
+    let currentPool;
     try {
-      // 如果连接池未初始化，自动初始化
-      try {
-        getPool();
-      } catch {
-        await initDatabase();
-      }
-      const currentPool = getPool();
+      getPool();
+      currentPool = getPool();
+    } catch {
+      await initDatabase();
+      currentPool = getPool();
+    }
+
+    // 查询所有酒店代码和名称的列表（用于 Select 选项）
+    // 根据 hotel_search.md 规则，查询所有酒店（不限制状态和删除标记）
+    // 先查询选项列表，确保即使主查询失败，选项列表也能返回
+    let hotelCodeOptions: Array<{ label: string; value: string }> = [];
+    let hotelNameOptions: Array<{ label: string; value: string }> = [];
+    try {
+      const optionsSql = `
+        SELECT
+          h.HotelCode AS 酒店代码,
+          h.HotelName AS 酒店名称
+        FROM [CrsStar].dbo.StarHotelBaseInfo h
+        ORDER BY h.HotelCode
+      `;
+      const optionsResult = await currentPool.request().query(optionsSql);
+      const uniqueHotels = optionsResult.recordset;
+      hotelCodeOptions = uniqueHotels.map((r: any) => ({ label: r.酒店代码, value: r.酒店代码 }));
+      hotelNameOptions = uniqueHotels.map((r: any) => ({ label: r.酒店名称, value: r.酒店名称 }));
+      console.log('[经营日报] 获取酒店选项列表完成，酒店代码:', hotelCodeOptions.length, '酒店名称:', hotelNameOptions.length);
+    } catch (error) {
+      console.error('[经营日报] 获取酒店选项列表失败:', error);
+    }
+
+    // 执行主查询
+    let results: any[] = [];
+    try {
       const request = currentPool.request();
       
       console.log('🔍 [SQL Query]', sql);
@@ -148,7 +173,23 @@ GROUP BY
     } catch (error) {
       console.error('❌ [SQL Error] 查询执行失败:', error);
       console.error('🔍 [Failed SQL]', sql);
-      throw error;
+      // 即使主查询失败，也返回选项列表
+      return NextResponse.json({
+        success: false,
+        data: {
+          message: '查询失败',
+          params,
+          timestamp: new Date().toISOString(),
+          total: 0,
+          items: [],
+          options: {
+            hotelCodes: hotelCodeOptions,
+            hotelNames: hotelNameOptions,
+          },
+        },
+        error: error instanceof Error ? error.message : '查询失败',
+        message: '查询失败，但已加载酒店选项列表',
+      });
     }
 
     console.log('[经营日报] 查询结果数量:', results.length);
@@ -159,7 +200,7 @@ GROUP BY
       酒店名称: '合计',
       管理公司: '合计',
       PMS类型: '合计',
-      物业类型: '合计',
+      产权类型: '合计',
       城市编码: '合计',
       房间总数: results.reduce((sum: number, row: any) => sum + (Number(row.房间总数) || 0), 0),
       已入住房数: results.reduce((sum: number, row: any) => sum + (Number(row.已入住房数) || 0), 0),
@@ -201,9 +242,13 @@ GROUP BY
       timestamp: new Date().toISOString(),
       total,
       items,
+      options: {
+        hotelCodes: hotelCodeOptions,
+        hotelNames: hotelNameOptions,
+      },
     };
 
-    console.log('[经营日报] 返回给前端的内容:', JSON.stringify(responseData, null, 2));
+    //console.log('[经营日报] 返回给前端的内容:', JSON.stringify(responseData, null, 2));
 
     return NextResponse.json({
       success: true,

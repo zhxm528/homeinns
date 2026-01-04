@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.roomtype.mapper.RoomTypeMapper">
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.zai.roomtype.entity.RoomType">
+        <id column="room_type_id" property="roomTypeId" />
+        <result column="chain_id" property="chainId" />
+        <result column="hotel_id" property="hotelId" />
+        <result column="hotel_name" property="hotelName" />
+        <result column="room_type_name" property="roomTypeName" />
+        <result column="description" property="description" />
+        <result column="standard_price" property="standardPrice" />
+        <result column="max_occupancy" property="maxOccupancy" />
+        <result column="room_type_code" property="roomTypeCode" />
+        <result column="physical_inventory" property="physicalInventory" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        room_type_id, chain_id, hotel_id, hotel_name,room_type_code, room_type_name, description, standard_price, max_occupancy, physical_inventory, created_at,updated_at
+    </sql>
+
+    <!-- 插入房型 -->
+    <insert id="insert" parameterType="com.zai.roomtype.entity.RoomType">
+        INSERT INTO room_types (
+            room_type_id, chain_id, hotel_id, room_type_name, room_type_code, description, 
+            standard_price, max_occupancy, physical_inventory, created_at,updated_at
+        ) VALUES (
+            #{roomTypeId}, #{chainId}, #{hotelId}, #{roomTypeName}, #{roomTypeCode},
+            #{description}, #{standardPrice}, #{maxOccupancy}, #{physicalInventory}, NOW(),NOW()
+        )
+    </insert>
+
+    <!-- 删除房型 -->
+    <delete id="deleteByRoomTypeId">
+        DELETE FROM room_types WHERE room_type_id = #{roomTypeId}
+    </delete>
+
+    <!-- 更新房型 -->
+    <update id="update" parameterType="com.zai.roomtype.entity.RoomType">
+        UPDATE room_types
+        <set>
+            <if test="roomTypeName != null">room_type_name = #{roomTypeName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="standardPrice != null">standard_price = #{standardPrice},</if>
+            <if test="maxOccupancy != null">max_occupancy = #{maxOccupancy},</if>
+            <if test="roomTypeCode != null">room_type_code = #{roomTypeCode},</if>
+            <if test="physicalInventory != null">physical_inventory = #{physicalInventory},</if>
+            updated_at = NOW()
+        </set>
+        WHERE room_type_id = #{roomTypeId}
+    </update>
+
+    <!-- 根据ID查询房型 -->
+    <select id="selectByRoomTypeId" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id, h.hotel_name, rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, rt.created_at
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        WHERE rt.room_type_id = #{roomTypeId}
+    </select>
+
+    <!-- 查询所有房型 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM room_types
+    </select>
+
+    <!-- 根据条件查询房型 -->
+    <select id="getRoomTypesByCondition" parameterType="map" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id, h.hotel_name, rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.created_at
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        <where>
+            <if test="hotelId != null">AND rt.hotel_id = #{hotelId}</if>
+            <if test="chainId != null">AND rt.chain_id = #{chainId}</if>
+            <if test="roomTypeName != null">AND (rt.room_type_name LIKE CONCAT('%', #{roomTypeName}, '%') OR rt.room_type_code LIKE CONCAT('%', #{roomTypeName}, '%'))</if>
+            <if test="roomTypeCode != null">AND rt.room_type_code = #{roomTypeCode}</if>
+        </where>
+        ORDER BY rt.created_at DESC
+        <if test="current != null and pageSize != null">
+            LIMIT #{pageSize} OFFSET #{current}
+        </if>
+    </select>
+
+    <!-- 根据酒店ID查询房型 -->
+    <select id="selectByHotelId" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id, h.hotel_name, rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.created_at
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        <where>
+            <if test="hotelId != null">AND rt.hotel_id = #{hotelId}</if>
+        </where>
+        ORDER BY rt.created_at DESC
+    </select>
+
+    <!-- 根据房型代码查询房型 -->
+    <select id="selectByRoomCode" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id, h.hotel_name, rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, rt.created_at
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        WHERE rt.room_type_code = #{roomTypeCode}
+    </select>
+
+    <!-- 根据房型代码、酒店ID和连锁ID查询房型 -->
+    <select id="selectByRoomCodeAndHotelAndChain" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id, h.hotel_name, rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, rt.created_at
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        WHERE rt.room_type_code = #{roomTypeCode}
+        AND rt.hotel_id = #{hotelId}
+        AND rt.chain_id = #{chainId}
+    </select>
+
+    <!-- 根据条件统计房型总数 -->
+    <select id="countByCondition" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM room_types rt
+        LEFT JOIN hotels h ON rt.hotel_id = h.hotel_id
+        <where>
+            <if test="hotelId != null">AND rt.hotel_id = #{hotelId}</if>
+            <if test="chainId != null">AND rt.chain_id = #{chainId}</if>
+            <if test="roomTypeName != null">AND (rt.room_type_name LIKE CONCAT('%', #{roomTypeName}, '%') OR rt.room_type_code LIKE CONCAT('%', #{roomTypeName}, '%'))</if>
+            <if test="roomTypeCode != null">AND rt.room_type_code = #{roomTypeCode}</if>
+        </where>
+    </select>
+
+    <select id="selectByChainIdAndHotelIdAndRoomTypeCode" resultType="com.zai.roomtype.entity.RoomType">
+        SELECT * FROM room_types 
+        WHERE chain_id = #{chainId} 
+        AND hotel_id = #{hotelId}
+        AND room_type_code = #{roomTypeCode}
+    </select>
+    
+    <update id="updateById" parameterType="com.zai.roomtype.entity.RoomType">
+        UPDATE room_types
+        SET room_type_name = #{roomTypeName},
+            description = #{description},
+            max_occupancy = #{maxOccupancy},
+            physical_inventory = #{physicalInventory},
+            updated_at = #{updatedAt}
+        WHERE room_type_id = #{roomTypeId}
+    </update>
+
+    <select id="selectRoomTypeComponent" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id,
+            rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, 
+            rt.created_at, rt.updated_at
+        FROM room_types rt
+        WHERE rt.hotel_id = #{hotelId}
+        ORDER BY rt.room_type_code ASC
+    </select>
+
+    <select id="selectCalendarByHotelIdAndRoomTypeCode" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id,
+            rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, 
+            rt.created_at, rt.updated_at
+        FROM room_types rt
+        WHERE rt.hotel_id = #{hotelId}
+        AND rt.room_type_code = #{roomTypeCode}
+    </select>
+
+    <select id="bookingSelectByHotelRoomTypeCode" resultMap="BaseResultMap">
+        SELECT 
+            rt.room_type_id, rt.chain_id, rt.hotel_id,
+            rt.room_type_name, rt.room_type_code, rt.description, 
+            rt.standard_price, rt.max_occupancy, rt.physical_inventory, 
+            rt.created_at, rt.updated_at
+        FROM room_types rt
+        WHERE rt.hotel_id = #{hotelId}
+        AND rt.room_type_code = #{roomTypeCode}
+    </select>
+</mapper> 

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.hotelbudget.mapper.HotelBudgetMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.zai.hotelbudget.entity.HotelBudget">
+        <result column="chain_id" property="chainId"/>
+        <result column="chain_code" property="chainCode"/>
+        <result column="chain_name" property="chainName"/>
+        <result column="hotel_id" property="hotelId"/>
+        <result column="hotel_code" property="hotelCode"/>
+        <result column="hotel_name" property="hotelName"/>
+        <result column="management_model" property="hotelManagementModel"/>
+        <result column="subject_code" property="subjectCode"/>
+        <result column="subject_name" property="subjectName"/>
+        <result column="budget_version" property="budgetVersion"/>
+        <result column="budget_year" property="budgetYear"/>
+        <result column="jan_budget" property="janBudget"/>
+        <result column="jan_ratio" property="janRatio"/>
+        <result column="feb_budget" property="febBudget"/>
+        <result column="feb_ratio" property="febRatio"/>
+        <result column="mar_budget" property="marBudget"/>
+        <result column="mar_ratio" property="marRatio"/>
+        <result column="apr_budget" property="aprBudget"/>
+        <result column="apr_ratio" property="aprRatio"/>
+        <result column="may_budget" property="mayBudget"/>
+        <result column="may_ratio" property="mayRatio"/>
+        <result column="jun_budget" property="junBudget"/>
+        <result column="jun_ratio" property="junRatio"/>
+        <result column="jul_budget" property="julBudget"/>
+        <result column="jul_ratio" property="julRatio"/>
+        <result column="aug_budget" property="augBudget"/>
+        <result column="aug_ratio" property="augRatio"/>
+        <result column="sep_budget" property="sepBudget"/>
+        <result column="sep_ratio" property="sepRatio"/>
+        <result column="oct_budget" property="octBudget"/>
+        <result column="oct_ratio" property="octRatio"/>
+        <result column="nov_budget" property="novBudget"/>
+        <result column="nov_ratio" property="novRatio"/>
+        <result column="dec_budget" property="decBudget"/>
+        <result column="dec_ratio" property="decRatio"/>
+        <result column="annual_budget" property="annualBudget"/>
+        <result column="annual_ratio" property="annualRatio"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 通用字段 -->
+    <sql id="Base_Column_List">
+        sort, chain_id, chain_code, chain_name, hotel_id, hotel_code, hotel_name, hotel_management_model,
+        subject_code, subject_name, budget_version, budget_year,
+        jan_budget, jan_ratio, feb_budget, feb_ratio, mar_budget, mar_ratio, apr_budget, apr_ratio,
+        may_budget, may_ratio, jun_budget, jun_ratio, jul_budget, jul_ratio, aug_budget, aug_ratio,
+        sep_budget, sep_ratio, oct_budget, oct_ratio, nov_budget, nov_ratio, dec_budget, dec_ratio,
+        annual_budget, annual_ratio, q1_budget, q1_ratio, q2_budget, q2_ratio, q3_budget, q3_ratio, q4_budget, q4_ratio,
+        created_at, updated_at
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.zai.hotelbudget.entity.HotelBudget">
+        INSERT INTO hotel_budget (
+            <include refid="Base_Column_List"/>
+        ) VALUES (
+            #{sort}, #{chainId}, #{chainCode}, #{chainName}, #{hotelId}, #{hotelCode}, #{hotelName}, #{hotelManagementModel},
+            #{subjectCode}, #{subjectName}, #{budgetVersion}, #{budgetYear},
+            #{janBudget}, #{janRatio}, #{febBudget}, #{febRatio}, #{marBudget}, #{marRatio}, #{aprBudget}, #{aprRatio},
+            #{mayBudget}, #{mayRatio}, #{junBudget}, #{junRatio}, #{julBudget}, #{julRatio}, #{augBudget}, #{augRatio},
+            #{sepBudget}, #{sepRatio}, #{octBudget}, #{octRatio}, #{novBudget}, #{novRatio}, #{decBudget}, #{decRatio},
+            #{annualBudget}, #{annualRatio}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.zai.hotelbudget.entity.HotelBudget">
+        UPDATE hotel_budget
+        SET sort = #{sort}, chain_code = #{chainCode}, chain_name = #{chainName}, hotel_code = #{hotelCode}, 
+            hotel_name = #{hotelName}, hotel_management_model = #{hotelManagementModel},
+            subject_name = #{subjectName},
+            jan_budget = #{janBudget}, jan_ratio = #{janRatio}, feb_budget = #{febBudget}, feb_ratio = #{febRatio},
+            mar_budget = #{marBudget}, mar_ratio = #{marRatio}, apr_budget = #{aprBudget}, apr_ratio = #{aprRatio},
+            may_budget = #{mayBudget}, may_ratio = #{mayRatio}, jun_budget = #{junBudget}, jun_ratio = #{junRatio},
+            jul_budget = #{julBudget}, jul_ratio = #{julRatio}, aug_budget = #{augBudget}, aug_ratio = #{augRatio},
+            sep_budget = #{sepBudget}, sep_ratio = #{sepRatio}, oct_budget = #{octBudget}, oct_ratio = #{octRatio},
+            nov_budget = #{novBudget}, nov_ratio = #{novRatio}, dec_budget = #{decBudget}, dec_ratio = #{decRatio},
+            annual_budget = #{annualBudget}, annual_ratio = #{annualRatio}, updated_at = #{updatedAt}
+        WHERE hotel_id = #{hotelId} AND budget_year = #{budgetYear} AND subject_code = #{subjectCode} AND budget_version = #{budgetVersion}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM hotel_budget
+        WHERE hotel_id = #{hotelId} AND budget_year = #{budgetYear} AND subject_code = #{subjectCode} AND budget_version = #{budgetVersion}
+    </delete>
+
+    <!-- 查询单条 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM hotel_budget
+        WHERE hotel_id = #{hotelId} AND budget_year = #{budgetYear} AND subject_code = #{subjectCode} AND budget_version = #{budgetVersion}
+    </select>
+
+    <!-- 条件分页查询 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM hotel_budget
+        WHERE chain_id = #{chainId} AND hotel_id = #{hotelId}
+        <if test="budgetYear != null">
+            AND budget_year = #{budgetYear}
+        </if>
+        <if test="subjectCode != null and subjectCode != ''">
+            AND subject_code = #{subjectCode}
+        </if>
+        <if test="budgetVersion != null and budgetVersion != ''">
+            AND budget_version = #{budgetVersion}
+        </if>
+        <if test="hotelManagementModel != null and hotelManagementModel != ''">
+            AND hotel_management_model = #{hotelManagementModel}
+        </if>
+        ORDER BY budget_year DESC, sort ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 条件统计 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(1)
+        FROM hotel_budget
+        WHERE chain_id = #{chainId} AND hotel_id = #{hotelId}
+        <if test="budgetYear != null">
+            AND budget_year = #{budgetYear}
+        </if>
+        <if test="subjectCode != null and subjectCode != ''">
+            AND subject_code = #{subjectCode}
+        </if>
+        <if test="budgetVersion != null and budgetVersion != ''">
+            AND budget_version = #{budgetVersion}
+        </if>
+        <if test="hotelManagementModel != null and hotelManagementModel != ''">
+            AND hotel_management_model = #{hotelManagementModel}
+        </if>
+    </select>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO hotel_budget (
+            <include refid="Base_Column_List"/>
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.sort}, #{item.chainId}, #{item.chainCode}, #{item.chainName}, 
+            #{item.hotelId}, #{item.hotelCode}, #{item.hotelName}, #{item.hotelManagementModel},
+             #{item.subjectCode}, #{item.subjectName}, #{item.budgetVersion}, #{item.budgetYear},
+             #{item.janBudget}, #{item.janRatio}, #{item.febBudget}, #{item.febRatio}, 
+             #{item.marBudget}, #{item.marRatio}, #{item.aprBudget}, #{item.aprRatio},
+             #{item.mayBudget}, #{item.mayRatio}, #{item.junBudget}, #{item.junRatio}, 
+             #{item.julBudget}, #{item.julRatio}, #{item.augBudget}, #{item.augRatio},
+             #{item.sepBudget}, #{item.sepRatio}, #{item.octBudget}, #{item.octRatio}, 
+             #{item.novBudget}, #{item.novRatio}, #{item.decBudget}, #{item.decRatio},
+             #{item.annualBudget}, #{item.annualRatio}, 
+             #{item.q1Budget}, #{item.q1Ratio},
+             #{item.q2Budget}, #{item.q2Ratio}, 
+             #{item.q3Budget}, #{item.q3Ratio},
+             #{item.q4Budget}, #{item.q4Ratio},
+             #{item.createdAt}, #{item.updatedAt})
+        </foreach>
+    </insert>
+
+    <!-- 批量更新 -->
+    <update id="batchUpdate">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE hotel_budget
+            SET sort = #{item.sort}, chain_code = #{item.chainCode}, chain_name = #{item.chainName}, hotel_code = #{item.hotelCode}, 
+                hotel_name = #{item.hotelName}, hotel_management_model = #{item.hotelManagementModel},
+                subject_name = #{item.subjectName},
+                jan_budget = #{item.janBudget}, jan_ratio = #{item.janRatio}, 
+                feb_budget = #{item.febBudget}, feb_ratio = #{item.febRatio},
+                mar_budget = #{item.marBudget}, mar_ratio = #{item.marRatio}, 
+                apr_budget = #{item.aprBudget}, apr_ratio = #{item.aprRatio},
+                may_budget = #{item.mayBudget}, may_ratio = #{item.mayRatio}, 
+                jun_budget = #{item.junBudget}, jun_ratio = #{item.junRatio},
+                jul_budget = #{item.julBudget}, jul_ratio = #{item.julRatio}, 
+                aug_budget = #{item.augBudget}, aug_ratio = #{item.augRatio},
+                sep_budget = #{item.sepBudget}, sep_ratio = #{item.sepRatio}, 
+                oct_budget = #{item.octBudget}, oct_ratio = #{item.octRatio},
+                nov_budget = #{item.novBudget}, nov_ratio = #{item.novRatio}, 
+                dec_budget = #{item.decBudget}, dec_ratio = #{item.decRatio},
+                annual_budget = #{item.annualBudget}, annual_ratio = #{item.annualRatio}, 
+                q1_budget = #{item.q1Budget}, q1_ratio = #{item.q1Ratio},
+                q2_budget = #{item.q2Budget}, q2_ratio = #{item.q2Ratio},
+                q3_budget = #{item.q3Budget}, q3_ratio = #{item.q3Ratio},
+                q4_budget = #{item.q4Budget}, q4_ratio = #{item.q4Ratio},
+                updated_at = #{item.updatedAt}
+            WHERE hotel_id = #{item.hotelId} AND budget_year = #{item.budgetYear} AND subject_code = #{item.subjectCode} AND budget_version = #{item.budgetVersion}
+        </foreach>
+    </update>
+
+    <!-- 根据主键删除酒店预算记录 -->
+    <delete id="deleteByChainHotelYear">
+        DELETE FROM hotel_budget
+        WHERE chain_id = #{chainId} AND hotel_id = #{hotelId} AND budget_year = #{budgetYear}
+    </delete>
+
+    <!-- 根据主键查询酒店预算记录 -->
+    <select id="selectByChainHotelYear" resultMap="BaseResultMap">
+        SELECT b.sort, b.chain_id, c.chain_code, c.chain_name, 
+        b.hotel_id, h.hotel_code, h.hotel_name, h.management_model,
+        b.subject_code, b.subject_name, b.budget_version, b.budget_year,
+        b.jan_budget, b.jan_ratio, b.feb_budget, b.feb_ratio, b.mar_budget, b.mar_ratio, b.apr_budget, b.apr_ratio,
+        b.may_budget, b.may_ratio, b.jun_budget, b.jun_ratio, b.jul_budget, b.jul_ratio, b.aug_budget, b.aug_ratio,
+        b.sep_budget, b.sep_ratio, b.oct_budget, b.oct_ratio, b.nov_budget, b.nov_ratio, b.dec_budget, b.dec_ratio,
+        b.annual_budget, b.annual_ratio, 
+        b.q1_budget, b.q1_ratio,
+        b.q2_budget, b.q2_ratio,
+        b.q3_budget, b.q3_ratio,
+        b.q4_budget, b.q4_ratio,
+        b.created_at, b.updated_at
+        FROM hotel_budget b
+        LEFT JOIN hotels h ON b.hotel_id = h.hotel_id
+        LEFT JOIN chains c ON h.chain_id = c.chain_id
+        LEFT JOIN cities ct ON h.city_id = ct.city_id
+        WHERE b.chain_id = #{chainId} 
+        AND b.hotel_id = #{hotelId} 
+        AND b.budget_year = #{budgetYear}
+        order by b.sort asc
+    </select>
+</mapper> 

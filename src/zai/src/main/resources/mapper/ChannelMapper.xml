@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.channel.mapper.ChannelMapper">
+    <resultMap id="BaseResultMap" type="com.zai.channel.entity.Channel">
+        <id column="channel_id" property="channelId" jdbcType="VARCHAR"/>
+        <result column="channel_code" property="channelCode" jdbcType="VARCHAR"/>
+        <result column="channel_name" property="channelName" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="contact_email" property="contactEmail" jdbcType="VARCHAR"/>
+        <result column="contact_phone" property="contactPhone" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        channel_id, channel_code, channel_name, description, contact_email, contact_phone, created_at
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.channel.entity.Channel">
+        INSERT INTO zai.channels (
+            channel_id, channel_code, channel_name, description, contact_email, contact_phone, created_at
+        ) VALUES (
+            #{channelId}, #{channelCode}, #{channelName}, #{description}, #{contactEmail}, #{contactPhone}, NOW()
+        )
+    </insert>
+
+    <delete id="deleteByChannelId" parameterType="java.lang.String">
+        DELETE FROM zai.channels WHERE channel_id = #{channelId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.channel.entity.Channel">
+        UPDATE zai.channels
+        SET channel_code = #{channelCode},
+            channel_name = #{channelName},
+            description = #{description},
+            contact_email = #{contactEmail},
+            contact_phone = #{contactPhone}
+        WHERE channel_id = #{channelId}
+    </update>
+
+    <select id="selectByChannelId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.channels
+        WHERE channel_id = #{channelId}
+    </select>
+
+   
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.channels
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.channels
+        <where>
+            <if test="channelName != null and channelName != ''">
+                AND channel_name LIKE CONCAT('%', #{channelName}, '%')
+            </if>
+            <if test="contactEmail != null and contactEmail != ''">
+                AND contact_email LIKE CONCAT('%', #{contactEmail}, '%')
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                AND contact_phone LIKE CONCAT('%', #{contactPhone}, '%')
+            </if>
+            <if test="channelCode != null and channelCode != ''">
+                AND channel_code LIKE CONCAT('%', #{channelCode}, '%')
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectChannelComponent" resultMap="BaseResultMap">
+        SELECT 
+            channel_id, channel_code, channel_name,
+            contact_email, contact_phone
+        FROM channels
+        ORDER BY channel_code ASC
+    </select>
+    
+</mapper> 

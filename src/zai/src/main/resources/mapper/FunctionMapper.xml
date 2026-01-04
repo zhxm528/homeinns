@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.function.mapper.FunctionMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.zai.function.entity.Function">
+        <id column="function_id" property="functionId"/>
+        <result column="function_code" property="functionCode"/>
+        <result column="function_name" property="functionName"/>
+        <result column="parent_function_id" property="parentFunctionId"/>
+        <result column="function_icon" property="functionIcon"/>
+        <result column="function_sort" property="functionSort"/>
+        <result column="function_path" property="functionPath"/>
+        <result column="function_status" property="functionStatus"/>
+        <result column="function_type" property="functionType"/>
+        <result column="function_description" property="functionDescription"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        function_id, function_code, function_name, parent_function_id, function_icon,
+        function_sort, function_path, function_status, function_type, function_description, created_at
+    </sql>
+    
+    <!-- 根据条件查询功能列表 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        <where>
+            <if test="functionCode != null and functionCode != ''">
+                AND function_code LIKE CONCAT('%', #{functionCode}, '%')
+            </if>
+            <if test="functionName != null and functionName != ''">
+                AND function_name LIKE CONCAT('%', #{functionName}, '%')
+            </if>
+            <if test="parentFunctionId != null and parentFunctionId != ''">
+                AND parent_function_id = #{parentFunctionId}
+            </if>
+            <if test="functionStatus != null and functionStatus != ''">
+                AND function_status = #{functionStatus}
+            </if>
+            <if test="functionType != null and functionType != ''">
+                AND function_type = #{functionType}
+            </if>
+        </where>
+        ORDER BY function_sort ASC, created_at DESC
+    </select>
+    
+    <!-- 根据ID查询功能 -->
+    <select id="selectByFunctionId" parameterType="string" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        WHERE function_id = #{functionId}
+    </select>
+    
+    <!-- 根据功能代码查询功能 -->
+    <select id="selectByFunctionCode" parameterType="string" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        WHERE function_code = #{functionCode}
+    </select>
+    
+    <!-- 根据功能代码查询功能（排除指定ID） -->
+    <select id="selectByFunctionCodeExcludeId" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        WHERE function_code = #{functionCode}
+        AND function_id != #{functionId}
+    </select>
+    
+    <!-- 查询所有功能 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        ORDER BY function_sort ASC, created_at DESC
+    </select>
+    
+    <!-- 查询上级功能列表 -->
+    <select id="selectParentFunctions" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM functions
+        WHERE parent_function_id IS NULL OR parent_function_id = ''
+        ORDER BY function_sort ASC, created_at DESC
+    </select>
+    
+    <!-- 插入功能 -->
+    <insert id="insert" parameterType="com.zai.function.entity.Function">
+        INSERT INTO functions (
+            function_id, function_code, function_name, parent_function_id, function_icon,
+            function_sort, function_path, function_status, function_type, function_description, created_at
+        )
+        VALUES (
+            #{functionId}, #{functionCode}, #{functionName}, #{parentFunctionId}, #{functionIcon},
+            #{functionSort}, #{functionPath}, #{functionStatus}, #{functionType}, #{functionDescription}, NOW()
+        )
+    </insert>
+    
+    <!-- 更新功能 -->
+    <update id="update" parameterType="com.zai.function.entity.Function">
+        UPDATE functions
+        <set>
+            <if test="functionCode != null">function_code = #{functionCode},</if>
+            <if test="functionName != null">function_name = #{functionName},</if>
+            <if test="parentFunctionId != null">parent_function_id = #{parentFunctionId},</if>
+            <if test="functionIcon != null">function_icon = #{functionIcon},</if>
+            <if test="functionSort != null">function_sort = #{functionSort},</if>
+            <if test="functionPath != null">function_path = #{functionPath},</if>
+            <if test="functionStatus != null">function_status = #{functionStatus},</if>
+            <if test="functionType != null">function_type = #{functionType},</if>
+            <if test="functionDescription != null">function_description = #{functionDescription},</if>
+        </set>
+        WHERE function_id = #{functionId}
+    </update>
+    
+    <!-- 根据ID删除功能 -->
+    <delete id="deleteByFunctionId" parameterType="string">
+        DELETE FROM functions WHERE function_id = #{functionId}
+    </delete>
+    
+    <!-- 根据条件统计功能数量 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM functions
+        <where>
+            <if test="functionCode != null and functionCode != ''">
+                AND function_code LIKE CONCAT('%', #{functionCode}, '%')
+            </if>
+            <if test="functionName != null and functionName != ''">
+                AND function_name LIKE CONCAT('%', #{functionName}, '%')
+            </if>
+            <if test="parentFunctionId != null and parentFunctionId != ''">
+                AND parent_function_id = #{parentFunctionId}
+            </if>
+            <if test="functionStatus != null and functionStatus != ''">
+                AND function_status = #{functionStatus}
+            </if>
+            <if test="functionType != null and functionType != ''">
+                AND function_type = #{functionType}
+            </if>
+        </where>
+    </select>
+    
+</mapper> 

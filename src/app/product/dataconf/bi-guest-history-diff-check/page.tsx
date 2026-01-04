@@ -74,9 +74,9 @@ export default function BiGuestHistoryDiffCheckPage() {
           const hotelCode = text || '';
           const linkUrl = `/product/dataconf/bi-guest-history-market-diff-check?startDate=${encodeURIComponent(bdate)}&endDate=${encodeURIComponent(bdate)}&hotelList=${encodeURIComponent(hotelCode)}`;
           return (
-            <Link href={linkUrl} className="text-blue-600 hover:text-blue-800 hover:underline">
+            <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline">
               {text}
-            </Link>
+            </a>
           );
         },
       },
@@ -162,6 +162,20 @@ export default function BiGuestHistoryDiffCheckPage() {
         },
       },
       {
+        title: 'BI房型间夜',
+        dataIndex: 'BI房型间夜',
+        key: 'BI房型间夜',
+        width: 120,
+        align: 'right',
+        render: (value: number, record: any) => {
+          const formatted = formatNumber(value || 0);
+          if (record.__type === 'total') {
+            return <strong>{formatted}</strong>;
+          }
+          return formatted;
+        },
+      },
+      {
         title: 'CRS间夜',
         dataIndex: 'CRS间夜',
         key: 'CRS间夜',
@@ -179,6 +193,20 @@ export default function BiGuestHistoryDiffCheckPage() {
         title: 'BI金额',
         dataIndex: 'BI金额',
         key: 'BI金额',
+        width: 150,
+        align: 'right',
+        render: (value: number, record: any) => {
+          const formatted = formatNumber(value || 0);
+          if (record.__type === 'total') {
+            return <strong>{formatted}</strong>;
+          }
+          return formatted;
+        },
+      },
+      {
+        title: 'BI房型金额',
+        dataIndex: 'BI房型金额',
+        key: 'BI房型金额',
         width: 150,
         align: 'right',
         render: (value: number, record: any) => {
@@ -222,6 +250,35 @@ export default function BiGuestHistoryDiffCheckPage() {
         dataIndex: '相差百分比',
         key: '相差百分比',
         width: 130,
+        align: 'right',
+        render: (value: number, record: any) => {
+          if (value === null || value === undefined) return '-';
+          const formatted = String(Math.round(value));
+          if (record.__type === 'total') {
+            return <strong>{formatted}</strong>;
+          }
+          return formatted;
+        },
+      },
+      {
+        title: '房型金额差',
+        dataIndex: '房型金额差',
+        key: '房型金额差',
+        width: 150,
+        align: 'right',
+        render: (value: number, record: any) => {
+          const formatted = formatNumber(value || 0);
+          if (record.__type === 'total') {
+            return <strong>{formatted}</strong>;
+          }
+          return formatted;
+        },
+      },
+      {
+        title: '房型相差百分比(%)',
+        dataIndex: '房型相差百分比',
+        key: '房型相差百分比',
+        width: 150,
         align: 'right',
         render: (value: number, record: any) => {
           if (value === null || value === undefined) return '-';

@@ -91,3 +91,13 @@ export interface HotelBaseInfo {
   BestPriceVocChannelMode?: boolean;
   PropertyType?: string;
 }
+
+// 如家接口配置
+export const INNS_API_CONFIG = {
+  getProduct: 'https://zyota.homeinns.com/HomeinnsAgentApi/api/HotelAvailableRM/GetProducts',
+  terminal: {
+    license: process.env.INNS_TERMINAL_LICENSE || 'CTRIP1233',
+    seq: process.env.INNS_TERMINAL_SEQ || '1',
+    oprId: process.env.INNS_TERMINAL_OPR_ID || '1',
+  },
+};

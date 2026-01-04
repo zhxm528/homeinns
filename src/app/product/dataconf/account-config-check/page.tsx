@@ -3,9 +3,12 @@ import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, DatePicker, Form, Table, Row, Col, Space, Input, message } from 'antd';
+import { Button, DatePicker, Form, Table, Row, Col, Space, Input, message, Select, ConfigProvider } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import zhCN from 'antd/locale/zh_CN';
+// @ts-ignore: xlsx types might be missing
+import * as XLSX from 'xlsx';
 
 type AccountConfigRow = {
   hotelid: string;
@@ -25,6 +28,9 @@ type ApiResponse = {
     timestamp: string;
     total: number;
     items: AccountConfigRow[];
+    options?: {
+      hotelCodes?: Array<{ label: string; value: string }>;
+    };
   } | null;
   message: string;
   error?: string;
@@ -34,11 +40,14 @@ export default function AccountConfigCheckPage() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
   const [generating, setGenerating] = useState<boolean>(false);
+  const [exporting, setExporting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<AccountConfigRow[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [hotelCodeOptions, setHotelCodeOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [hotelOptionsLoading, setHotelOptionsLoading] = useState<boolean>(true);
 
   const columns: ColumnsType<AccountConfigRow> = useMemo(() => [
     { title: '酒店代码', dataIndex: 'hotelid', key: 'hotelid', fixed: 'left', width: 120 },
@@ -56,6 +65,7 @@ export default function AccountConfigCheckPage() {
     const params = new URLSearchParams();
     if (values.bDate) params.set('bDate', dayjs(values.bDate).format('YYYY-MM-DD'));
     if (values.days) params.set('days', String(values.days));
+    if (values.hotelCode) params.set('hotelCode', values.hotelCode);
     params.set('page', String(p));
     params.set('pageSize', String(ps));
 
@@ -64,7 +74,16 @@ export default function AccountConfigCheckPage() {
     try {
       const res = await fetch(`/api/product/dataconf/account-config-check?${params.toString()}`, { method: 'GET' });
       const json: ApiResponse = await res.json();
+      
+      // 无论查询成功与否，都尝试获取选项列表
+      if (json.data && json.data.options && json.data.options.hotelCodes && json.data.options.hotelCodes.length > 0) {
+        console.log('[科目配置检查] fetchData 中获取到酒店代码选项，数量:', json.data.options.hotelCodes.length);
+        setHotelCodeOptions(json.data.options.hotelCodes);
+        setHotelOptionsLoading(false);
+      }
+      
       if (!json.success || !json.data) throw new Error(json.error || json.message || '请求失败');
+      
       // 过滤掉合计行
       const filteredItems = json.data.items.filter((item) => item.__type !== 'total');
       setItems(filteredItems);
@@ -79,17 +98,126 @@ export default function AccountConfigCheckPage() {
     }
   };
 
+  // 加载酒店选项列表
+  const loadHotelOptions = async () => {
+    try {
+      setHotelOptionsLoading(true);
+      const defaultDates = { bDate: dayjs().subtract(1, 'day').format('YYYY-MM-DD'), days: '1' };
+      const params = new URLSearchParams();
+      params.set('bDate', defaultDates.bDate);
+      params.set('days', defaultDates.days);
+      params.set('page', '1');
+      params.set('pageSize', '1');
+      
+      const res = await fetch(`/api/product/dataconf/account-config-check?${params.toString()}`);
+      const json: ApiResponse = await res.json();
+      console.log('[科目配置检查] 加载酒店选项列表响应:', json);
+      
+      if (json.success && json.data && json.data.options) {
+        console.log('[科目配置检查] 选项数据:', json.data.options);
+        if (json.data.options.hotelCodes && json.data.options.hotelCodes.length > 0) {
+          console.log('[科目配置检查] 设置酒店代码选项，数量:', json.data.options.hotelCodes.length);
+          setHotelCodeOptions(json.data.options.hotelCodes);
+        } else {
+          console.warn('[科目配置检查] 酒店代码选项为空或未定义');
+        }
+      } else {
+        console.warn('[科目配置检查] API 响应中没有选项数据:', json);
+      }
+    } catch (e) {
+      console.error('加载酒店选项列表失败:', e);
+    } finally {
+      setHotelOptionsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    form.setFieldsValue({
-      bDate: dayjs().subtract(1, 'day'),
-      days: 1
-    });
-    fetchData({ page: 1, pageSize: 10 });
+    const initialize = async () => {
+      form.setFieldsValue({
+        bDate: dayjs().subtract(1, 'day'),
+        days: 1
+      });
+      // 先加载酒店选项列表，等待完成后再执行查询
+      await loadHotelOptions();
+      // 然后执行查询
+      fetchData({ page: 1, pageSize: 10 });
+    };
+    initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bDateWatch = Form.useWatch('bDate', form);
   const daysWatch = Form.useWatch('days', form);
+  const hotelCodeWatch = Form.useWatch('hotelCode', form);
+
+  const handleExport = async () => {
+    setExporting(true);
+    setError(null);
+    try {
+      // 获取所有数据（不分页）
+      const values = form.getFieldsValue();
+      const params = new URLSearchParams();
+      if (values.bDate) params.set('bDate', dayjs(values.bDate).format('YYYY-MM-DD'));
+      if (values.days) params.set('days', String(values.days));
+      if (values.hotelCode) params.set('hotelCode', values.hotelCode);
+      params.set('page', '1');
+      params.set('pageSize', '10000'); // 获取全部数据
+
+      const res = await fetch(`/api/product/dataconf/account-config-check?${params.toString()}`, { method: 'GET' });
+      const json: ApiResponse = await res.json();
+      if (!json.success || !json.data) throw new Error(json.error || json.message || '获取数据失败');
+
+      // 过滤掉合计行
+      const allItems = json.data.items.filter((item) => item.__type !== 'total');
+
+      if (allItems.length === 0) {
+        message.warning('没有数据可导出');
+        return;
+      }
+
+      // 准备Excel数据
+      const excelData = allItems.map((item) => ({
+        酒店代码: item.hotelid || '',
+        酒店名称: item.hotelName || '',
+        科目代码: item.class1 || '',
+        科目名称: item.descript1 || '',
+        部门代码: item.dept || '',
+        部门名称: item.deptname || '',
+      }));
+
+      // 创建工作簿和工作表
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // 设置列宽
+      const colWidths = [
+        { wch: 12 }, // 酒店代码
+        { wch: 20 }, // 酒店名称
+        { wch: 15 }, // 科目代码
+        { wch: 30 }, // 科目名称
+        { wch: 12 }, // 部门代码
+        { wch: 15 }, // 部门名称
+      ];
+      ws['!cols'] = colWidths;
+
+      // 添加工作表到工作簿
+      XLSX.utils.book_append_sheet(wb, ws, '科目配置检查');
+
+      // 生成文件名
+      const fileName = `科目配置检查_${dayjs(values.bDate || new Date()).format('YYYY-MM-DD')}_${Date.now()}.xlsx`;
+
+      // 导出文件
+      XLSX.writeFile(wb, fileName);
+
+      message.success(`导出成功！共导出 ${allItems.length} 条数据`);
+    } catch (e: any) {
+      console.error('导出失败:', e);
+      setError(e?.message || '导出失败');
+      message.error(e?.message || '导出失败');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleGenerateSQL = async () => {
     if (items.length === 0) {
@@ -105,6 +233,7 @@ export default function AccountConfigCheckPage() {
       const params = new URLSearchParams();
       if (values.bDate) params.set('bDate', dayjs(values.bDate).format('YYYY-MM-DD'));
       if (values.days) params.set('days', String(values.days));
+      if (values.hotelCode) params.set('hotelCode', values.hotelCode);
       params.set('page', '1');
       params.set('pageSize', '100000'); // 获取全部数据
 
@@ -154,6 +283,7 @@ export default function AccountConfigCheckPage() {
   };
 
   return (
+    <ConfigProvider locale={zhCN}>
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 页面标题和返回按钮 */}
@@ -189,6 +319,22 @@ export default function AccountConfigCheckPage() {
                   <Input type="number" min={1} placeholder="如 1" allowClear />
                 </Form.Item>
               </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="酒店代码" name="hotelCode">
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder="选择或输入酒店代码（支持自查询）..."
+                    className="w-full"
+                    loading={hotelOptionsLoading}
+                    options={hotelCodeOptions}
+                    notFoundContent={hotelOptionsLoading ? '加载中...' : hotelCodeOptions.length === 0 ? '无数据' : '无匹配项'}
+                    filterOption={(input, option) =>
+                      ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
+                    }
+                  />
+                </Form.Item>
+              </Col>
             </Row>
             <Space>
               <Button type="primary" htmlType="submit" loading={loading}>查询</Button>
@@ -214,6 +360,11 @@ export default function AccountConfigCheckPage() {
               天数窗口: {daysWatch}
             </span>
           )}
+          {hotelCodeWatch && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
+              酒店代码: {hotelCodeWatch}
+            </span>
+          )}
         </div>
 
         {error && <div className="text-red-600 mb-3">{error}</div>}
@@ -223,6 +374,15 @@ export default function AccountConfigCheckPage() {
             <div className="text-gray-700">
               总条数：<span className="font-semibold text-gray-900">{total}</span>
             </div>
+            <Space>
+              <Button
+                type="default"
+                onClick={handleExport}
+                loading={exporting}
+                disabled={items.length === 0}
+              >
+                导出Excel
+              </Button>
             <Button
               type="primary"
               onClick={handleGenerateSQL}
@@ -231,6 +391,7 @@ export default function AccountConfigCheckPage() {
             >
               生成科目配置SQL
             </Button>
+            </Space>
           </div>
         </div>
 
@@ -267,5 +428,6 @@ export default function AccountConfigCheckPage() {
         </div>
       </div>
     </div>
+    </ConfigProvider>
   );
 }

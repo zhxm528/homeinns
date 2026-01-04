@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.booking.mapper.CompanyMapper">
+    
+    <resultMap id="CompanyResultMap" type="com.zai.booking.entity.Company">
+        <id column="company_id" property="companyId"/>
+        <result column="company_code" property="companyCode"/>
+        <result column="company_name" property="companyName"/>
+        <result column="company_ename" property="companyEname"/>
+        <result column="contact_person" property="contactPerson"/>
+        <result column="contact_email" property="contactEmail"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="address" property="address"/>
+        <result column="member_level" property="memberLevel"/>
+        <result column="member_card_no" property="memberCardNo"/>
+        <result column="member_type" property="memberType"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        company_id, company_code, company_name, company_ename, contact_person, contact_email,
+        contact_phone, address, member_level, member_card_no, member_type
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.booking.entity.Company">
+        INSERT INTO companies (
+            <include refid="Base_Column_List"/>
+        ) VALUES (
+            #{companyId}, #{companyCode}, #{companyName}, #{companyEname}, #{contactPerson}, #{contactEmail},
+            #{contactPhone}, #{address}, #{memberLevel}, #{memberCardNo}, #{memberType}
+        )
+    </insert>
+
+    <delete id="deleteByCompanyId" parameterType="java.lang.String">
+        DELETE FROM companies WHERE company_id = #{companyId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.booking.entity.Company">
+        UPDATE companies
+        <set>
+            <if test="companyCode != null">company_code = #{companyCode},</if>
+            <if test="companyName != null">company_name = #{companyName},</if>
+            <if test="companyEname != null">company_ename = #{companyEname},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="memberLevel != null">member_level = #{memberLevel},</if>
+            <if test="memberCardNo != null">member_card_no = #{memberCardNo},</if>
+            <if test="memberType != null">member_type = #{memberType},</if>
+        </set>
+        WHERE company_id = #{companyId}
+    </update>
+
+    <select id="selectByCompanyId" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE company_id = #{companyId}
+    </select>
+
+    <select id="selectByCompanyCode" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE company_code = #{companyCode}
+    </select>
+
+    <select id="selectByCompanyName" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE company_name LIKE CONCAT('%', #{companyName}, '%')
+        ORDER BY company_name
+    </select>
+
+    <select id="selectByCompanyEname" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE company_ename LIKE CONCAT('%', #{companyEname}, '%')
+        ORDER BY company_ename
+    </select>
+
+    <select id="selectByContactPerson" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE contact_person LIKE CONCAT('%', #{contactPerson}, '%')
+        ORDER BY company_name
+    </select>
+
+    <select id="selectByContactPhone" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE contact_phone = #{contactPhone}
+    </select>
+
+    <select id="selectByContactEmail" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE contact_email = #{contactEmail}
+    </select>
+
+    <select id="selectByMemberCardNo" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE member_card_no = #{memberCardNo}
+        ORDER BY company_name
+    </select>
+
+    <select id="selectByMemberType" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        WHERE member_type = #{memberType}
+        ORDER BY company_name
+    </select>
+
+    <select id="selectByCondition" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        <where>
+            <if test="companyName != null and companyName != ''">
+                AND company_name LIKE CONCAT('%', #{companyName}, '%')
+            </if>
+            <if test="companyEname != null and companyEname != ''">
+                AND company_ename LIKE CONCAT('%', #{companyEname}, '%')
+            </if>
+            <if test="contactPerson != null and contactPerson != ''">
+                AND contact_person LIKE CONCAT('%', #{contactPerson}, '%')
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                AND contact_phone = #{contactPhone}
+            </if>
+            <if test="contactEmail != null and contactEmail != ''">
+                AND contact_email = #{contactEmail}
+            </if>
+            <if test="memberType != null and memberType != ''">
+                AND member_type = #{memberType}
+            </if>
+        </where>
+        ORDER BY company_name
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="selectAll" resultMap="CompanyResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM companies
+        ORDER BY company_name
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM companies
+        <where>
+            <if test="companyName != null and companyName != ''">
+                AND company_name LIKE CONCAT('%', #{companyName}, '%')
+            </if>
+            <if test="companyEname != null and companyEname != ''">
+                AND company_ename LIKE CONCAT('%', #{companyEname}, '%')
+            </if>
+            <if test="contactPerson != null and contactPerson != ''">
+                AND contact_person LIKE CONCAT('%', #{contactPerson}, '%')
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                AND contact_phone = #{contactPhone}
+            </if>
+            <if test="contactEmail != null and contactEmail != ''">
+                AND contact_email = #{contactEmail}
+            </if>
+            <if test="memberType != null and memberType != ''">
+                AND member_type = #{memberType}
+            </if>
+        </where>
+    </select>
+
+</mapper> 

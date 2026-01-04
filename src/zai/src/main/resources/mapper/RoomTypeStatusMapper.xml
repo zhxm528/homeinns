@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.roomtypestatus.mapper.RoomTypeStatusMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.zai.roomtypestatus.entity.RoomTypeStatus">
+        <id column="roomtype_status_id" property="roomtypeStatusId" jdbcType="VARCHAR"/>
+        <result column="chain_id" property="chainId" jdbcType="VARCHAR"/>
+        <result column="hotel_id" property="hotelId" jdbcType="VARCHAR"/>
+        <result column="hotel_code" property="hotelCode" jdbcType="VARCHAR"/>
+        <result column="rate_plan_id" property="ratePlanId" jdbcType="VARCHAR"/>
+        <result column="room_type_id" property="roomTypeId" jdbcType="VARCHAR"/>
+        <result column="room_type_code" property="roomTypeCode" jdbcType="VARCHAR"/>
+        <result column="rate_code_id" property="rateCodeId" jdbcType="VARCHAR"/>
+        <result column="rate_code" property="rateCode" jdbcType="VARCHAR"/>
+        <result column="stay_date" property="stayDate" jdbcType="VARCHAR"/>
+        <result column="is_available" property="isAvailable" jdbcType="CHAR"/>
+        <result column="remaining_inventory" property="remainingInventory" jdbcType="INTEGER"/>
+        <result column="sold_inventory" property="soldInventory" jdbcType="INTEGER"/>
+        <result column="physical_inventory" property="physicalInventory" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="VARCHAR"/>
+        <result column="updated_at" property="updatedAt" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        roomtype_status_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id, 
+        room_type_code, rate_code_id, rate_code, stay_date, is_available, remaining_inventory, 
+        sold_inventory, physical_inventory, created_at, updated_at
+    </sql>
+
+    <!-- 根据条件查询房型库存状态列表 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode.size() > 0">
+                AND room_type_code IN
+                <foreach collection="roomTypeCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="rateCode != null and rateCode.size() > 0">
+                AND rate_code IN
+                <foreach collection="rateCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND stay_date &lt;= #{endDate}
+            </if>
+            <if test="isAvailable != null and isAvailable != ''">
+                AND is_available = #{isAvailable}
+            </if>
+        </where>
+        ORDER BY stay_date DESC, created_at DESC
+    </select>
+
+    <!-- 根据ID查询房型库存状态 -->
+    <select id="selectById" parameterType="string" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        WHERE roomtype_status_id = #{roomtypeStatusId}
+    </select>
+
+    <!-- 根据复合主键查询房型库存状态 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        WHERE chain_id = #{chainId}
+          AND hotel_id = #{hotelId}
+          AND rate_code = #{rateCode}
+          AND room_type_code = #{roomTypeCode}
+          AND stay_date = #{stayDate}
+    </select>
+
+    <!-- 插入房型库存状态 -->
+    <insert id="insert" parameterType="com.zai.roomtypestatus.entity.RoomTypeStatus">
+        INSERT INTO roomtype_inventory_status (
+            roomtype_status_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id,
+            room_type_code, rate_code_id, rate_code, stay_date, is_available, remaining_inventory,
+            sold_inventory, physical_inventory, created_at, updated_at
+        ) VALUES (
+            #{roomtypeStatusId}, #{chainId}, #{hotelId}, #{hotelCode}, #{ratePlanId}, #{roomTypeId},
+            #{roomTypeCode}, #{rateCodeId}, #{rateCode}, #{stayDate}, #{isAvailable}, #{remainingInventory},
+            #{soldInventory}, #{physicalInventory}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新房型库存状态 -->
+    <update id="update" parameterType="com.zai.roomtypestatus.entity.RoomTypeStatus">
+        UPDATE roomtype_inventory_status
+        <set>
+            <if test="chainId != null">chain_id = #{chainId},</if>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="hotelCode != null">hotel_code = #{hotelCode},</if>
+            <if test="ratePlanId != null">rate_plan_id = #{ratePlanId},</if>
+            <if test="roomTypeId != null">room_type_id = #{roomTypeId},</if>
+            <if test="roomTypeCode != null">room_type_code = #{roomTypeCode},</if>
+            <if test="rateCodeId != null">rate_code_id = #{rateCodeId},</if>
+            <if test="rateCode != null">rate_code = #{rateCode},</if>
+            <if test="stayDate != null">stay_date = #{stayDate},</if>
+            <if test="isAvailable != null">is_available = #{isAvailable},</if>
+            <if test="remainingInventory != null">remaining_inventory = #{remainingInventory},</if>
+            <if test="soldInventory != null">sold_inventory = #{soldInventory},</if>
+            <if test="physicalInventory != null">physical_inventory = #{physicalInventory},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE roomtype_status_id = #{roomtypeStatusId}
+    </update>
+
+    <!-- 根据ID删除房型库存状态 -->
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM roomtype_inventory_status
+        WHERE roomtype_status_id = #{roomtypeStatusId}
+    </delete>
+
+    <!-- 根据复合主键删除房型库存状态 -->
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM roomtype_inventory_status
+        WHERE chain_id = #{chainId}
+          AND hotel_id = #{hotelId}
+          AND rate_code = #{rateCode}
+          AND room_type_code = #{roomTypeCode}
+          AND stay_date = #{stayDate}
+    </delete>
+
+    <!-- 批量插入房型库存状态 -->
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO roomtype_inventory_status (
+            roomtype_status_id, chain_id, hotel_id, hotel_code, rate_plan_id, room_type_id,
+            room_type_code, rate_code_id, rate_code, stay_date, is_available, remaining_inventory,
+            sold_inventory, physical_inventory, created_at, updated_at
+        ) VALUES
+        <foreach collection="roomTypeStatusList" item="item" separator=",">
+            (
+                #{item.roomtypeStatusId}, #{item.chainId}, #{item.hotelId}, #{item.hotelCode}, 
+                #{item.ratePlanId}, #{item.roomTypeId}, #{item.roomTypeCode}, #{item.rateCodeId}, 
+                #{item.rateCode}, #{item.stayDate}, #{item.isAvailable}, #{item.remainingInventory},
+                #{item.soldInventory}, #{item.physicalInventory}, #{item.createdAt}, #{item.updatedAt}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据条件统计房型库存状态数量 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM roomtype_inventory_status
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+            <if test="hotelId != null and hotelId != ''">
+                AND hotel_id = #{hotelId}
+            </if>
+            <if test="roomTypeCode != null and roomTypeCode.size() > 0">
+                AND room_type_code IN
+                <foreach collection="roomTypeCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="rateCode != null and rateCode.size() > 0">
+                AND rate_code IN
+                <foreach collection="rateCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND stay_date >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND stay_date &lt;= #{endDate}
+            </if>
+            <if test="isAvailable != null and isAvailable != ''">
+                AND is_available = #{isAvailable}
+            </if>
+        </where>
+    </select>
+    <!-- 根据条件查询房型库存状态列表 -->
+    <select id="calendarByConditions" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        WHERE hotel_id = #{hotelId}
+            AND room_type_code IN
+                <foreach collection="roomTypeCode" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            AND stay_date &gt;= #{startDate}
+            AND stay_date &lt;= #{endDate}        
+        ORDER BY stay_date ASC
+    </select>
+
+    <select id="roomtypeInventoryStatusByConditions" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        WHERE chain_id = #{chainId}
+            AND hotel_id = #{hotelId}
+            AND room_type_code = #{roomTypeCode}
+            AND stay_date = #{stayDate}
+    </select>
+
+    <!-- 根据酒店ID、房型代码和入住日期查询房型库存状态记录 -->
+    <select id="selectByHotelIdAndRoomTypeAndStayDate" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM roomtype_inventory_status
+        WHERE hotel_id = #{hotelId} 
+          AND room_type_code = #{roomTypeCode} 
+          AND stay_date = #{stayDate}
+        LIMIT 1
+    </select>
+
+    <!-- 根据酒店ID、房型代码和入住日期更新房型库存状态记录 -->
+    <update id="updateByHotelIdAndRoomTypeAndStayDate">
+        UPDATE roomtype_inventory_status
+        SET is_available = #{isAvailable},
+            updated_at = NOW()
+        WHERE hotel_id = #{hotelId} 
+          AND room_type_code = #{roomTypeCode} 
+          AND stay_date = #{stayDate}
+    </update>
+
+</mapper> 

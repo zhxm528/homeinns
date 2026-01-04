@@ -107,6 +107,9 @@ export async function GET(request: Request) {
   const hotelTypes = searchParams.get('hotelTypes')?.split(',') || [];
   const propertyTypes = searchParams.get('propertyTypes')?.split(',') || [];
   const pmsTypes = searchParams.get('pmsTypes')?.split(',') || [];
+  const areas = searchParams.get('areas')?.split(',') || [];
+  const urbanAreas = searchParams.get('urbanAreas')?.split(',') || [];
+  const cities = searchParams.get('cities')?.split(',') || [];
   const status = searchParams.get('status');
   const isDelete = searchParams.get('isDelete');
 
@@ -117,14 +120,16 @@ export async function GET(request: Request) {
   if (isDbReady) {
     try {
       // 构建查询条件
-      // 优先使用 hotelCode，如果 hotelCode 不存在则使用 hotelName
-      const searchTerm = hotelCode || hotelName;
       const queryConditions = {
-        hotelCode: searchTerm || undefined,
+        hotelCode: hotelCode || undefined,
+        hotelName: hotelName || undefined,
         groupCodes: groupCodes.length > 0 ? groupCodes : undefined,
         hotelTypes: hotelTypes.length > 0 ? hotelTypes : undefined,
         propertyTypes: propertyTypes.length > 0 ? propertyTypes : undefined,
         pmsTypes: pmsTypes.length > 0 ? pmsTypes : undefined,
+        areas: areas.length > 0 ? areas : undefined,
+        urbanAreas: urbanAreas.length > 0 ? urbanAreas : undefined,
+        cities: cities.length > 0 ? cities : undefined,
         status: status !== null ? parseInt(status) : undefined,
         isDelete: isDelete !== null ? parseInt(isDelete) : undefined,
       };

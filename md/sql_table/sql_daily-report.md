@@ -1,11 +1,11 @@
 #sql语句
-sql
-```
+
+```sql
 SELECT 
     b.HotelName AS 酒店名称,
     b.GroupCode AS 管理公司,
     b.PMSType AS PMS类型,
-    b.PropertyType AS 物业类型,
+    b.PropertyType AS 产权类型,
     b.MDMCity AS 城市编码,
     SUM(a.rms_ttl) AS 房间总数,
     SUM(a.rms_occ) AS 已入住房数,

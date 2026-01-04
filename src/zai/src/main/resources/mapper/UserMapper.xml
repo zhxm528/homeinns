@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.user.mapper.UserMapper">
+    
+    <resultMap id="UserResultMap" type="com.zai.user.entity.User">
+        <id column="user_id" property="userId"/>
+        <result column="login_name" property="loginName"/>
+        <result column="username" property="username"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="email" property="email"/>
+        <result column="full_name" property="fullName"/>
+        <result column="phone" property="phone"/>
+        <result column="address" property="address"/>
+        <result column="department" property="department"/>
+        <result column="position" property="position"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="chain_id" property="chainId"/>
+        <result column="chain_name" property="chainName"/>
+        <result column="hotel_id" property="hotelId"/>
+        <result column="hotel_name" property="hotelName"/>
+        <result column="hotel_code" property="hotelCode"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        ORDER BY u.created_at DESC
+    </select>
+
+    <select id="selectByUserId" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        WHERE u.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        <where>
+            <if test="loginName != null and loginName != ''">
+                AND u.login_name LIKE CONCAT('%', #{loginName}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND u.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="chainId != null and chainId != ''">
+                AND u.chain_id = #{chainId}
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND u.type = #{type}
+            </if>
+        </where>
+        ORDER BY u.created_at DESC
+    </select>
+
+    <select id="selectAllByCondition" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        <where>
+            <if test="loginName != null and loginName != ''">
+                AND u.login_name LIKE CONCAT('%', #{loginName}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND u.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="chainId != null and chainId != ''">
+                AND u.chain_id = #{chainId}
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND u.type = #{type}
+            </if>
+        </where>
+        ORDER BY u.created_at DESC
+    </select>
+
+    <select id="findUsers" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        <where>
+            <if test="loginName != null and loginName != ''">
+                AND u.login_name LIKE CONCAT('%', #{loginName}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND u.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND u.type = #{type}
+            </if>
+        </where>
+        ORDER BY u.created_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.zai.user.entity.User">
+        INSERT INTO zai.users (
+            user_id, login_name, username, password_hash, email,
+            full_name, phone, address, department, position, chain_id, type, status，hotel_id
+        )
+        VALUES (
+            #{userId}, #{loginName}, #{username}, #{passwordHash}, #{email},
+            #{fullName}, #{phone}, #{address}, #{department}, #{position}, #{chainId}, #{type}, #{status}, #{hotelId}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.zai.user.entity.User">
+        UPDATE zai.users
+        <set>
+            <if test="loginName != null">login_name = #{loginName},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="passwordHash != null">password_hash = #{passwordHash},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="fullName != null">full_name = #{fullName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="position != null">position = #{position},</if>
+            <if test="chainId != null">chain_id = #{chainId},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            updated_at = NOW()
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="deleteByUserId">
+        DELETE FROM zai.users WHERE user_id = #{userId}
+    </delete>    
+
+    <select id="selectByLoginName" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        WHERE u.login_name = #{loginName}
+    </select>
+
+    
+    <update id="updateHotelIdByUserId" parameterType="com.zai.user.entity.User">
+        UPDATE users
+        <set>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            updated_at = NOW()
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="getUserByUserId" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 根据条件查询用户（支持多个集团ID） -->
+    <select id="selectByConditionWithChainIds" resultMap="UserResultMap">
+        SELECT 
+            u.user_id, u.login_name, u.username, u.password_hash, u.email,
+            u.full_name, u.phone, u.address, u.department, u.position,
+            u.created_at, u.updated_at, u.type, u.status, u.chain_id,
+            c.chain_name, u.hotel_id, h.hotel_name,h.hotel_code
+        FROM zai.users u
+        LEFT JOIN zai.chains c ON u.chain_id = c.chain_id
+        LEFT JOIN zai.hotels h ON u.hotel_id = h.hotel_id
+        <where>
+            <if test="chainIds != null and chainIds.size() > 0">
+                AND u.chain_id IN
+                <foreach collection="chainIds" item="chainId" open="(" separator="," close=")">
+                    #{chainId}
+                </foreach>
+            </if>
+            <if test="loginName != null and loginName != ''">
+                AND u.login_name LIKE CONCAT('%', #{loginName}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND u.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND u.status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND u.type = #{type}
+            </if>
+        </where>
+        ORDER BY u.created_at DESC
+    </select>
+
+</mapper> 

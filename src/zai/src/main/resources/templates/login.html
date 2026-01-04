@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>登录页面</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h2 {
+            color: #4361ee;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #6c757d;
+        }
+
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            padding: 1rem 0.75rem;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            border: none;
+            padding: 0.75rem;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #3f37c9, #4361ee);
+        }
+
+        .alert {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2><i class="fas fa-user-circle me-2"></i>用户登录</h2>
+            <p>请输入您的账号和密码</p>
+        </div>
+        
+        <form id="loginForm" th:action="@{/login}" method="post">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="loginName" name="loginName" placeholder="登录名" required>
+                <label for="loginName">登录名</label>
+            </div>
+            
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+                <label for="password">密码</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                <label class="form-check-label" for="rememberMe">记住我</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>登录
+            </button>
+
+            <div class="alert alert-danger mt-3" role="alert" style="display: none;" id="errorMessage">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorText"></span>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const loginName = $('#loginName').val();
+                const password = $('#password').val();
+                
+                if (!loginName || !password) {
+                    showError('请输入登录名和密码');
+                    return;
+                }
+
+                // 密码加密
+                const passwordHash = CryptoJS.SHA256(password).toString();
+                
+                $.ajax({
+                    url: '/api/login',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        loginName: loginName,
+                        passwordHash: passwordHash
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = '/user/index';
+                        } else {
+                            showError(response.message || '登录失败');
+                        }
+                    },
+                    error: function(xhr) {
+                        showError(xhr.responseJSON?.message || '登录失败，请稍后重试');
+                    }
+                });
+            });
+        });
+
+        function showError(message) {
+            $('#errorText').text(message);
+            $('#errorMessage').show();
+        }
+    </script>
+</body>
+</html> 

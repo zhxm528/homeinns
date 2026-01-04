@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.city.mapper.CityMapper">
+    <resultMap id="BaseResultMap" type="com.zai.city.entity.City">
+        <id column="city_id" jdbcType="VARCHAR" property="cityId" />
+        <result column="city_code" jdbcType="VARCHAR" property="cityCode" />
+        <result column="city_name" jdbcType="VARCHAR" property="cityName" />
+        <result column="province" jdbcType="VARCHAR" property="province" />
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        city_id, city_code, city_name, province, created_at
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.city.entity.City">
+        INSERT INTO cities (
+            city_id, city_code, city_name, province, created_at
+        ) VALUES (
+            #{cityId}, #{cityCode}, #{cityName}, #{province}, #{createdAt}
+        )
+    </insert>
+
+    <delete id="deleteByCityId">
+        DELETE FROM cities WHERE city_id = #{cityId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.city.entity.City">
+        UPDATE cities
+        SET city_code = #{cityCode},
+            city_name = #{cityName},
+            province = #{province}
+        WHERE city_id = #{cityId}
+    </update>
+
+    <select id="selectByCityId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM cities
+        WHERE city_id = #{cityId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM cities
+        ORDER BY province ASC, city_name ASC
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM cities
+        <where>
+            <if test="cityName != null and cityName != ''">
+                AND city_name LIKE CONCAT('%', #{cityName}, '%')
+            </if>
+            <if test="province != null and province != ''">
+                AND province = #{province}
+            </if>
+        </where>
+        ORDER BY province ASC, city_name ASC
+    </select>
+
+    <select id="selectByCityCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.cities
+        WHERE city_code = #{cityCode}
+    </select>
+</mapper> 

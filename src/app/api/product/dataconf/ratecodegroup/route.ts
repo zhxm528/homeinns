@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // 获取查询参数
     const groupCodes = searchParams.get('groupCodes') || '';
     const rateCode = searchParams.get('rateCode') || '';
-    const marketCode = searchParams.get('marketCode') || '';
+    const channelCodes = searchParams.get('channelCodes') || '';
 
     // 构建SQL查询
     // 使用LEFT JOIN，确保即使HotelCode为空或JOIN不到数据也能返回
@@ -42,20 +42,15 @@ export async function GET(request: NextRequest) {
       sql += ` AND s.RateCodeEqual LIKE '%${rateCode}%'`;
     }
 
-    if (marketCode) {
-      sql += ` AND EXISTS (
-        SELECT 1 FROM [CrsStar].dbo.SOP_StarMarketInfo_Brand AS m
-        WHERE m.MarketCode LIKE '%${marketCode}%'
-        AND m.BrandCode = s.BrandCode
-        AND m.IsValid = 1
-        AND m.IsDelete = 0
-      )`;
+    if (channelCodes) {
+      const codes = channelCodes.split(',').map(code => `'${code.trim()}'`).join(',');
+      sql += ` AND s.ResvTypeEqual IN (${codes})`;
     }
 
     sql += ` ORDER BY s.ColumnPosition, s.HotelCode`;
 
     console.log('房价码分组查询SQL:', sql);
-    console.log('查询参数:', { groupCodes, rateCode, marketCode });
+    console.log('查询参数:', { groupCodes, rateCode, channelCodes });
 
     // 执行查询
     const results = await executeQuery<any>(sql);
@@ -72,26 +67,6 @@ export async function GET(request: NextRequest) {
         房价码明细列表 = row.房价码列表.split(',').map((rc: string) => rc.trim()).filter((rc: string) => rc);
         房价码数量 = 房价码明细列表.length;
       }
-
-      // 查询市场码信息
-      let 市场码 = '';
-      if (row.品牌代码) {
-        try {
-          const marketQuery = `
-            SELECT TOP 1 MarketCode 
-            FROM [CrsStar].dbo.SOP_StarMarketInfo_Brand 
-            WHERE BrandCode = '${row.品牌代码}' 
-            AND IsValid = 1 
-            AND IsDelete = 0
-          `;
-          const marketResults = await executeQuery<any>(marketQuery);
-          if (marketResults.length > 0) {
-            市场码 = marketResults[0].MarketCode || '';
-          }
-        } catch (error) {
-          console.warn('查询市场码失败:', error);
-        }
-      }
       
       return {
         ID: row.ID,
@@ -103,12 +78,11 @@ export async function GET(request: NextRequest) {
         酒店代码: row.酒店代码 || '',
         酒店名称: row.酒店名称 || '',
         管理公司: row.管理公司 || '',
-        渠道码: row.渠道码 || '',
-        市场码: 市场码
+        渠道码: row.渠道码 || ''
       };
     }));
 
-    console.log('房价码分组查询结果:', processedResults);
+    //console.log('房价码分组查询结果:', processedResults);
 
     return NextResponse.json({
       success: true,
@@ -131,8 +105,7 @@ export async function GET(request: NextRequest) {
         酒店代码: 'BJ001',
         酒店名称: '北京建国饭店',
         管理公司: 'JG',
-        渠道码: 'CTP',
-        市场码: ''
+        渠道码: 'CTP'
       },
       {
         ID: 2,
@@ -144,8 +117,7 @@ export async function GET(request: NextRequest) {
         酒店代码: '',
         酒店名称: '',
         管理公司: '',
-        渠道码: 'WEB',
-        市场码: ''
+        渠道码: 'WEB'
       }
     ];
 

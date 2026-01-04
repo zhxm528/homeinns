@@ -37,6 +37,37 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // 验证日期格式 (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      return NextResponse.json({
+        success: false,
+        data: null,
+        error: '日期格式不正确，应为 YYYY-MM-DD 格式',
+        message: '查询失败',
+      });
+    }
+
+    // 验证日期范围（开始日期不能大于结束日期）
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return NextResponse.json({
+        success: false,
+        data: null,
+        error: '日期格式无效',
+        message: '查询失败',
+      });
+    }
+    if (start > end) {
+      return NextResponse.json({
+        success: false,
+        data: null,
+        error: '开始日期不能大于结束日期',
+        message: '查询失败',
+      });
+    }
+
     // 构建SQL查询 - 按日期分组
     const sql = `
 SELECT 
@@ -138,24 +169,24 @@ ORDER BY
       实际售卖间夜数: row.已入住房数, // 实际售卖间夜数就是已入住房数
     }));
 
-    // 获取酒店信息
+    // 获取酒店信息（无论是否有查询结果都应该获取）
     let hotelInfo: any = {};
-    if (formattedResults.length > 0) {
-      try {
-        const hotelInfoSql = `
-          SELECT HotelCode, HotelName, GroupCode, PMSType, PropertyType, MDMCity
-          FROM [CrsStar].dbo.StarHotelBaseInfo
-          WHERE HotelCode = '${hotelCode.replace(/'/g, "''")}'
-          AND Status = 1
-          AND IsDelete = 0
-        `;
-        const hotelInfoResult = await getPool().request().query(hotelInfoSql);
-        if (hotelInfoResult.recordset.length > 0) {
-          hotelInfo = hotelInfoResult.recordset[0];
-        }
-      } catch (error) {
-        console.warn('获取酒店信息失败:', error);
+    try {
+      const hotelInfoSql = `
+        SELECT HotelCode, HotelName, GroupCode, PMSType, PropertyType, MDMCity
+        FROM [CrsStar].dbo.StarHotelBaseInfo
+        WHERE HotelCode = '${hotelCode.replace(/'/g, "''")}'
+        AND Status = 1
+        AND IsDelete = 0
+      `;
+      const hotelInfoResult = await getPool().request().query(hotelInfoSql);
+      if (hotelInfoResult.recordset.length > 0) {
+        hotelInfo = hotelInfoResult.recordset[0];
+      } else {
+        console.warn(`[经营日报-每日明细] 未找到酒店信息: ${hotelCode}`);
       }
+    } catch (error) {
+      console.warn('获取酒店信息失败:', error);
     }
 
     // 日志打印返回给前端的内容

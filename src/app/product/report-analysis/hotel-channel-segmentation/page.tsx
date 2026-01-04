@@ -15,6 +15,8 @@ import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 // @ts-ignore: xlsx types might be missing
 import * as XLSX from 'xlsx';
+// @ts-ignore: echarts types might be missing
+import ReactECharts from 'echarts-for-react';
 
 export default function HotelChannelSegmentationPage() {
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,9 @@ export default function HotelChannelSegmentationPage() {
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(1000);
+  
+  // 渠道分组统计数据（用于图表）
+  const [channelGroupStats, setChannelGroupStats] = useState<any[]>([]);
 
   const formatNumber = (value: number) => {
     if (value === null || value === undefined || isNaN(value)) return '';
@@ -213,6 +218,103 @@ export default function HotelChannelSegmentationPage() {
     ];
   }, []);
 
+  // 计算渠道分组统计
+  const calculateChannelGroupStats = (data: any[]) => {
+    // 过滤掉合计行和汇总行
+    const normalRows = data.filter(row => row.__type === 'normal');
+    
+    // 按渠道代码分组
+    const channelGroups: Record<string, any[]> = {};
+    normalRows.forEach(row => {
+      const channelCode = row.渠道代码 || '';
+      if (!channelGroups[channelCode]) {
+        channelGroups[channelCode] = [];
+      }
+      channelGroups[channelCode].push(row);
+    });
+
+    // 计算每个渠道的汇总
+    const groupStats: any[] = [];
+    Object.keys(channelGroups).forEach(channelCode => {
+      const rows = channelGroups[channelCode];
+      const firstRow = rows[0];
+      
+      const stats = {
+        渠道代码: channelCode,
+        渠道名称: `${firstRow.渠道名称 || channelCode} - 渠道分组统计`,
+        酒店代码: '',
+        酒店名称: '',
+        当日间夜数: rows.reduce((sum, row) => sum + (Number(row.当日间夜数) || 0), 0),
+        当日客房收入: rows.reduce((sum, row) => sum + (Number(row.当日客房收入) || 0), 0),
+        当月MTD间夜数: rows.reduce((sum, row) => sum + (Number(row.当月MTD间夜数) || 0), 0),
+        当月MTD客房收入: rows.reduce((sum, row) => sum + (Number(row.当月MTD客房收入) || 0), 0),
+        当年YTD间夜数: rows.reduce((sum, row) => sum + (Number(row.当年YTD间夜数) || 0), 0),
+        当年YTD客房收入: rows.reduce((sum, row) => sum + (Number(row.当年YTD客房收入) || 0), 0),
+        __type: 'channelGroup',
+      };
+      groupStats.push(stats);
+    });
+
+    return groupStats;
+  };
+
+  // 将数据按渠道分组，并在每个渠道后插入汇总行
+  const insertChannelGroupStats = (data: any[], allGroupStats?: any[]) => {
+    // 过滤掉合计行和已有的汇总行
+    const normalRows = data.filter(row => row.__type === 'normal');
+    
+    // 使用传入的完整统计，如果没有则计算当前数据的统计
+    const groupStats = allGroupStats || calculateChannelGroupStats(data);
+    
+    // 获取当前页涉及的渠道代码
+    const currentPageChannels = new Set(normalRows.map(row => row.渠道代码).filter(Boolean));
+    
+    // 按渠道代码排序
+    normalRows.sort((a, b) => {
+      const codeA = a.渠道代码 || '';
+      const codeB = b.渠道代码 || '';
+      if (codeA !== codeB) {
+        return codeA.localeCompare(codeB);
+      }
+      return (a.酒店代码 || '').localeCompare(b.酒店代码 || '');
+    });
+
+    // 构建新数组，在每个渠道的数据后插入汇总行
+    const result: any[] = [];
+    let currentChannel = '';
+    
+    normalRows.forEach(row => {
+      const rowChannel = row.渠道代码 || '';
+      
+      // 如果切换到新渠道，先插入上一个渠道的汇总行（使用完整统计）
+      if (currentChannel && currentChannel !== rowChannel) {
+        const groupStat = groupStats.find(stat => stat.渠道代码 === currentChannel);
+        if (groupStat && currentPageChannels.has(currentChannel)) {
+          result.push(groupStat);
+        }
+      }
+      
+      result.push(row);
+      currentChannel = rowChannel;
+    });
+    
+    // 插入最后一个渠道的汇总行（使用完整统计）
+    if (currentChannel) {
+      const groupStat = groupStats.find(stat => stat.渠道代码 === currentChannel);
+      if (groupStat && currentPageChannels.has(currentChannel)) {
+        result.push(groupStat);
+      }
+    }
+
+    // 如果有合计行，放在最前面
+    const totalRow = data.find(row => row.__type === 'total');
+    if (totalRow) {
+      return [totalRow, ...result];
+    }
+    
+    return result;
+  };
+
   const handleQuery = async (toPage?: number, toPageSize?: number) => {
     try {
       setLoading(true);
@@ -223,13 +325,41 @@ export default function HotelChannelSegmentationPage() {
       if (queryDate) params.append('queryDate', queryDate);
       if (groupCodes.length) params.append('groupCodes', groupCodes.join(','));
       if (channelCodes.length) params.append('channelCodes', channelCodes.join(','));
-      params.append('page', String(currentPage));
-      params.append('pageSize', String(currentSize));
 
-      const res = await fetch(`/api/product/report-analysis/hotel-channel-segmentation?${params.toString()}`);
+      // 先获取所有数据来计算渠道分组统计
+      const allDataParams = new URLSearchParams(params);
+      allDataParams.append('page', '1');
+      allDataParams.append('pageSize', '10000'); // 获取所有数据
+
+      const allDataRes = await fetch(`/api/product/report-analysis/hotel-channel-segmentation?${allDataParams.toString()}`);
+      const allDataJson = await allDataRes.json();
+      
+      if (!allDataJson.success) {
+        setRows([]);
+        setTotal(0);
+        setError(allDataJson.error || '加载数据失败');
+        return;
+      }
+
+      // 计算所有数据的渠道分组统计
+      const allItems = allDataJson.data.items || [];
+      const groupStats = calculateChannelGroupStats(allItems);
+      // 保存渠道分组统计数据用于图表
+      setChannelGroupStats(groupStats);
+
+      // 获取当前页的数据
+      const pageParams = new URLSearchParams(params);
+      pageParams.append('page', String(currentPage));
+      pageParams.append('pageSize', String(currentSize));
+
+      const res = await fetch(`/api/product/report-analysis/hotel-channel-segmentation?${pageParams.toString()}`);
       const json = await res.json();
+      
       if (json.success) {
-        setRows(json.data.items || []);
+        const items = json.data.items || [];
+        // 在当前页数据中插入渠道分组统计行（只插入当前页涉及的渠道）
+        const itemsWithGroupStats = insertChannelGroupStats(items, groupStats);
+        setRows(itemsWithGroupStats);
         setTotal(json.data.total || 0);
         setPage(currentPage);
         setPageSize(currentSize);
@@ -254,8 +384,195 @@ export default function HotelChannelSegmentationPage() {
     setPageSize(1000);
     setRows([]);
     setTotal(0);
+    setChannelGroupStats([]);
     setError(null);
   };
+
+  // 准备饼图数据：当日间夜
+  const dailyRoomNightChartOption = useMemo(() => {
+    if (channelGroupStats.length === 0) {
+      return { title: { text: '当日间夜', left: 'center' }, series: [{ type: 'pie', data: [] }] };
+    }
+
+    const chartData = channelGroupStats.map(stat => {
+      // 从"渠道名称 - 渠道分组统计"中提取渠道名称
+      const channelName = (stat.渠道名称 || '').replace(' - 渠道分组统计', '') || stat.渠道代码 || '未知';
+      return {
+        name: channelName,
+        value: Number(stat.当日间夜数) || 0,
+      };
+    });
+
+    return {
+      title: {
+        text: '当日间夜',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>间夜数: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '当日间夜',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [channelGroupStats]);
+
+  // 准备饼图数据：当月MTD间夜
+  const mtdRoomNightChartOption = useMemo(() => {
+    if (channelGroupStats.length === 0) {
+      return { title: { text: '当月MTD间夜', left: 'center' }, series: [{ type: 'pie', data: [] }] };
+    }
+
+    const chartData = channelGroupStats.map(stat => {
+      // 从"渠道名称 - 渠道分组统计"中提取渠道名称
+      const channelName = (stat.渠道名称 || '').replace(' - 渠道分组统计', '') || stat.渠道代码 || '未知';
+      return {
+        name: channelName,
+        value: Number(stat.当月MTD间夜数) || 0,
+      };
+    });
+
+    return {
+      title: {
+        text: '当月MTD间夜',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>间夜数: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '当月MTD间夜',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [channelGroupStats]);
+
+  // 准备饼图数据：当年YTD间夜
+  const ytdRoomNightChartOption = useMemo(() => {
+    if (channelGroupStats.length === 0) {
+      return { title: { text: '当年YTD间夜', left: 'center' }, series: [{ type: 'pie', data: [] }] };
+    }
+
+    const chartData = channelGroupStats.map(stat => {
+      // 从"渠道名称 - 渠道分组统计"中提取渠道名称
+      const channelName = (stat.渠道名称 || '').replace(' - 渠道分组统计', '') || stat.渠道代码 || '未知';
+      return {
+        name: channelName,
+        value: Number(stat.当年YTD间夜数) || 0,
+      };
+    });
+
+    return {
+      title: {
+        text: '当年YTD间夜',
+        left: 'center',
+        top: 10,
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => {
+          const value = formatNumber(params.value);
+          const percent = params.percent;
+          return `${params.name}<br/>间夜数: ${value}<br/>占比: ${percent}%`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle',
+      },
+      series: [
+        {
+          name: '当年YTD间夜',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: true,
+            formatter: '{b}: {c}\n({d}%)',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
+          },
+          data: chartData,
+        },
+      ],
+    };
+  }, [channelGroupStats]);
 
   const handleExport = async () => {
     try {
@@ -432,6 +749,8 @@ export default function HotelChannelSegmentationPage() {
                     { label: 'OBR - 飞猪线上', value: 'OBR' },
                     { label: 'WEB - 如家官网', value: 'WEB' },
                     { label: 'WAT - 首享会', value: 'WAT' },
+                    { label: 'Agoda：AGO', value: 'AGO' },
+                    { label: '京东：JD', value: 'JD' },
                   ]}
                   filterOption={(input, option) =>
                     ((option?.label as string) || '').toLowerCase().includes(input.toLowerCase())
@@ -460,16 +779,54 @@ export default function HotelChannelSegmentationPage() {
             {channelCodes.map(cc => <span key={`cc-${cc}`} className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">渠道: {cc}</span>)}
           </div>
 
+          {/* 饼图 */}
+          {channelGroupStats.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <ReactECharts
+                    option={dailyRoomNightChartOption}
+                    style={{ height: '400px', width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                  />
+                </div>
+                <div>
+                  <ReactECharts
+                    option={mtdRoomNightChartOption}
+                    style={{ height: '400px', width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                  />
+                </div>
+                <div>
+                  <ReactECharts
+                    option={ytdRoomNightChartOption}
+                    style={{ height: '400px', width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 表格 */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <Table
               columns={tableColumns}
               dataSource={rows}
               loading={loading}
-              rowKey={(record) => (record.渠道代码 || '') + (record.酒店代码 || '') + (record.__type || '')}
+              rowKey={(record) => (record.渠道代码 || '') + (record.酒店代码 || '') + (record.__type || '') + Math.random()}
               scroll={{ x: 'max-content', y: 520 }}
               pagination={false}
               bordered
+              onRow={(record) => {
+                // 为汇总行和渠道分组统计行添加特殊样式
+                if (record.__type === 'total' || record.__type === 'channelGroup') {
+                  return {
+                    className: 'bg-gray-100 font-semibold',
+                  };
+                }
+                return {};
+              }}
             />
             <div className="mt-4 flex flex-col md:flex-row md:items-center justify-end">
               <Pagination

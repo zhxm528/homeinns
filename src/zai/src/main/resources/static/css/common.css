@@ -1,0 +1,19 @@
+body {
+    padding: 20px;
+}
+
+.toolbar {
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+.search-form {
+    margin-bottom: 20px;
+}
+
+.search-form .form-group {
+    margin-right: 10px;
+} 

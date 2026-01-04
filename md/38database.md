@@ -85,9 +85,9 @@ PropertyType	varchar	20
 ```
 
 
-##房价码基础信息表： StarRateCodeInfo
- - 表名: [CrsStar ].dbo.StarRateCodeInfo
- - 表结构：
+## 房价码基础信息表： StarRateCodeInfo
+- 表名: [CrsStar ].dbo.StarRateCodeInfo
+- 表结构：
 ```
 名称	类型	长度
 ID	bigint	8
@@ -222,6 +222,27 @@ cohabitantId	varchar	50
 rsvClass	varchar	5
 rsvDatetime	datetime	8
 ```
+##订单每日明细表： MemberChildOrderRecordDailyRate
+ - 表名: [CrsStar ].dbo.MemberChildOrderRecordDailyRate
+ - 表结构：
+```
+列名	类型	长度
+Id	int	4
+OrderNo	varchar	50
+PMSOrderNo	varchar	50
+ParentOrderNo	varchar	50
+RoomCost	decimal	9
+RepastCost	decimal	9
+OtherCost	decimal	9
+TotalCost	decimal	9
+CreateName	varchar	50
+CreateDate	datetime	8
+DailyDate	datetime	8
+RoomNightNum	decimal	9
+OrRoomNightNum	decimal	9
+XFRoomCost	decimal	9
+```
+
 
 ##每日经营按酒店统计表： bi_ttl
  - 表名: [192.168.210.170].[Report ].dbo.bi_ttl
@@ -383,4 +404,136 @@ IsValid	int	4
 IsDelete	int	4
 CodeName	nvarchar	50
 BrandCode	varchar	10
+ ```
+
+
+ ##房型信息表：
+ - 表名: [CrsStar ].dbo.StarRoomInfo
+ - 表结构：
+ ```
+ 名称	类型	长度
+ID	bigint	8
+HotelCode	varchar	10
+RoomTypeClass	varchar	10
+RoomTypeCode	varchar	10
+RoomTypeName	varchar	200
+Number	int	4
+MaxNumber	int	4
+Area	decimal	9
+Sort	int	4
+Facilities	varchar	2000
+Describe	varchar	2000
+IsValid	int	4
+IsDelete	int	4
+IsHaveWindows	int	4
+IsHaveSmoke	int	4
+IsAddBed	int	4
+Remarks	varchar	500
+ModifyBy	varchar	50
+ModifyTime	datetime	8
+IsMainRoom	bit	1
+RoomTypeNameEn	varchar	200
+DescribeEn	varchar	2000
+ ```
+
+ ##渠道信息表：
+ - 表名: [CrsStar ].dbo.SOP_StarChannelInfo_Brand
+ - 表结构：
+ ```
+ 列名	类型	长度
+ID	bigint	8
+ChannelCode	varchar	10
+ChannelName	varchar	100
+Sort	int	4
+IsValid	int	4
+IsDelete	int	4
+ChannelName_EN	varchar	500
+UseOverBooking	int	4
+BrandCode	varchar	10
+CheckPriceSwitch	int	4
+ChannelCate	varchar	20
+InventoryMode	varchar	20
+IsIntegral	bit	1
+ApplicableIdentity	varchar	200
+ApplicableIdentityValue	varchar	200
+OneLevelCode	varchar	10
+OneLevelName	varchar	50
+IsOffline	bit	1
+FloatingVal	decimal	9
+FloatingType	char	1
+
+ ```
+
+
+ ##包价信息表：
+ - 表名: [CrsStar ].dbo.StarPackageInfo
+ - 表结构：
+ ```
+ 列名	类型	长度
+PackageCode	varchar	10
+HotelCode	varchar	50
+PackageName	varchar	500
+PackageClass	varchar	100
+PackageType	varchar	40
+Nums	int	4
+ThrowWay	varchar	40
+Calculation	varchar	40
+Separate	int	4
+Sort	int	4
+ShortInfo	varchar	500
+LongInfo	varchar	5000
+CreateTime	datetime	8
+UserId	varchar	100
+IsValid	int	4
+IsDelete	int	4
+PackagePrice	decimal	9
+
+ ```
+
+
+ ##渠道订单表：
+ - 表名: [CrsStar ].dbo.View_StarOrderRoom_All
+ - 表结构：
+ ```
+ 列名	类型	长度
+OrderNo	varchar	50
+HotelCd	varchar	50
+AgentCd	varchar	50
+ResvType	varchar	50
+HotelName	varchar	50
+ArrDate	datetime	8
+DepDate	datetime	8
+RoomTypeCode	varchar	50
+RoomTypeName	varchar	500
+RoomNum	int	4
+ActualRt	decimal	9
+PayCd	varchar	50
+MemberType	varchar	50
+MemberNo	varchar	50
+ModiFlg	varchar	50
+GustNm	varchar	500
+MobileTel	varchar	50
+CRSResvDate	datetime	8
+Note	varchar	1000
+EditDate	datetime	8
+Opr	varchar	50
+TotalXf	decimal	9
+RateCode	varchar	50
+CrsStatus	varchar	50
+MustPayMoney	decimal	9
+IsPrepay	int	4
+ActCd	varchar	50
+AdultNum	int	4
+ChildNum	int	4
+ResStatus	varchar	20
+CrsOrderType	varchar	10
+Sex	bit	1
+Email	varchar	100
+ModifyOrderStatus	varchar	50
+MemberSource	varchar	50
+OldNote	varchar	1000
+Tunnel	varchar	50
+PayEnterpriseId	varchar	20
+PMSAccnt	varchar	50
+
  ```

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 引入vmenu的头部，包含样式和脚本 -->
+    <div th:replace="common/vmenu :: head"></div>
+    <meta charset="UTF-8">
+    <title>附加服务管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap Table CSS -->
+    <link href="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.css" rel="stylesheet">
+    <!-- Bootstrap Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <!-- AdminLTE CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        .v-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .v-content {
+                margin-left: 0;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .search-form {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            color: #344767;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid #dee2e6;
+            border-top: none;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-xs {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 0.2rem;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 引入垂直导航栏 -->
+    <div th:replace="common/vmenu :: vmenu"></div>
+    
+    <!-- 主内容区域 -->
+    <div class="v-content">
+        <div class="main-content">
+            <div class="container-fluid px-4">
+                <div class="page-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>包价管理</h2>
+                        <div class="hotel-selector">
+                            <select class="selectpicker" data-live-search="true" title="选择酒店" id="hotelSelect">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-form">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchServiceName" placeholder="服务名称">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary" onclick="searchServices()">
+                                <i class="fas fa-search me-1"></i>搜索
+                            </button>
+                            <button type="button" class="btn btn-success ms-2" onclick="showAddModal()">
+                                <i class="fas fa-plus me-1"></i>新增
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="serviceTable" class="table">
+                        <thead>
+                            <tr>
+                                <th data-field="serviceId" data-visible="false">服务ID</th>
+                                <th data-field="serviceName">服务名称</th>
+                                <th data-field="description">描述</th>
+                                <th data-field="unitPrice">单价</th>
+                                <th data-field="unitNum">单位数量</th>
+                                <th data-field="limitStartTime">开始时间</th>
+                                <th data-field="limitEndTime">结束时间</th>
+                                <th data-field="availWeeks">可用星期</th>
+                                <th data-field="operate" data-formatter="operateFormatter" data-align="center">操作</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑模态框 -->
+    <div class="modal fade" id="serviceModal" tabindex="-1" role="dialog" aria-labelledby="serviceModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="serviceModalLabel">新增服务</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>所属集团：<span id="chainName" class="text-primary"></span></label>
+                    </div>
+                    <div class="form-group">
+                        <label>所属酒店：<span id="hotelName" class="text-primary"></span></label>
+                    </div>
+                    <form id="serviceForm">
+                        <input type="hidden" id="serviceId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="serviceName">服务名称</label>
+                                    <input type="text" class="form-control" id="serviceName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="unitPrice">单价</label>
+                                    <input type="number" class="form-control" id="unitPrice" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">描述</label>
+                            <textarea class="form-control" id="description" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="unitNum">单位数量</label>
+                                    <input type="number" class="form-control" id="unitNum" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>可用星期</label>
+                                    <div class="week-checkboxes">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="monday" value="1">
+                                            <label class="form-check-label" for="monday">周一</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="tuesday" value="2">
+                                            <label class="form-check-label" for="tuesday">周二</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="wednesday" value="3">
+                                            <label class="form-check-label" for="wednesday">周三</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="thursday" value="4">
+                                            <label class="form-check-label" for="thursday">周四</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="friday" value="5">
+                                            <label class="form-check-label" for="friday">周五</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="saturday" value="6">
+                                            <label class="form-check-label" for="saturday">周六</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="sunday" value="7">
+                                            <label class="form-check-label" for="sunday">周日</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="limitStartTime">开始时间</label>
+                                    <input type="time" class="form-control" id="limitStartTime">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="limitEndTime">结束时间</label>
+                                    <input type="time" class="form-control" id="limitEndTime">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveService()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+    <script>
+        let serviceModal;
+        let serviceTable;
+
+        $(document).ready(function() {
+            serviceModal = new bootstrap.Modal(document.getElementById('serviceModal'));
+            serviceTable = $('#serviceTable');
+            
+            // 初始化Bootstrap Table
+            serviceTable.bootstrapTable({
+                pagination: true,
+                pageSize: 10,
+                pageList: [10, 25, 50, 100],
+                search: false,
+                showRefresh: false,
+                showToggle: false,
+                showColumns: false,
+                clickToSelect: true,
+                sidePagination: 'client',
+                formatShowingRows: function(pageFrom, pageTo, totalRows) {
+                    return '显示第 ' + pageFrom + ' 到第 ' + pageTo + ' 条记录，总共 ' + totalRows + ' 条记录';
+                },
+                formatRecordsPerPage: function(pageNumber) {
+                    return '每页显示 ' + pageNumber + ' 条记录';
+                },
+                formatNoMatches: function() {
+                    return '没有找到匹配的记录';
+                },
+                columns: [{
+                    field: 'serviceId',
+                    visible: false
+                }, {
+                    field: 'serviceName',
+                    title: '服务名称'
+                }, {
+                    field: 'description',
+                    title: '描述'
+                }, {
+                    field: 'unitPrice',
+                    title: '单价'
+                }, {
+                    field: 'unitNum',
+                    title: '单位数量'
+                }, {
+                    field: 'limitStartTime',
+                    title: '开始时间'
+                }, {
+                    field: 'limitEndTime',
+                    title: '结束时间'
+                }, {
+                    field: 'availWeeks',
+                    title: '可用星期',
+                    formatter: formatAvailWeeks
+                }, {
+                    field: 'operate',
+                    title: '操作',
+                    formatter: operateFormatter,
+                    align: 'center'
+                }]
+            });
+            
+            // 初始化酒店选择器
+            $('.selectpicker').selectpicker();
+            
+            // 加载酒店列表
+            loadHotels();
+            
+            loadServices();
+        });
+
+        function loadHotels() {
+            $.ajax({
+                url: '/api/hotels/current-chain',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const hotels = response.data;
+                        const hotelSelect = $('#hotelSelect');
+                        hotelSelect.empty();
+                        
+                        hotels.forEach(function(hotel) {
+                            hotelSelect.append($('<option>', {
+                                value: hotel.hotelId,
+                                text: hotel.hotelName
+                            }));
+                        });
+                        
+                        // 刷新selectpicker
+                        hotelSelect.selectpicker('refresh');
+                    } else {
+                        alert('加载酒店列表失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('加载酒店列表失败：' + xhr.responseText);
+                }
+            });
+        }
+
+        function loadServices() {
+            $.ajax({
+                url: '/api/additionalservices/list',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        serviceTable.bootstrapTable('load', response.data);
+                    } else {
+                        alert('加载数据失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('加载数据失败：' + xhr.responseText);
+                }
+            });
+        }
+
+        function searchServices() {
+            const serviceName = $('#searchServiceName').val();
+            $.ajax({
+                url: '/api/additionalservices/list',
+                type: 'GET',
+                data: { 
+                    serviceName: serviceName 
+                },
+                success: function(response) {
+                    if (response.success) {
+                        serviceTable.bootstrapTable('load', response.data);
+                    } else {
+                        alert('搜索失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('搜索失败：' + xhr.responseText);
+                }
+            });
+        }
+
+        function operateFormatter(value, row, index) {
+            return [
+                '<button class="btn btn-xs btn-primary" title="编辑" onclick="showEditModal(\'' + row.serviceId + '\')"><i class="fas fa-edit"></i></button>',
+                '<button class="btn btn-xs btn-danger ms-1" title="删除" onclick="deleteService(\'' + row.serviceId + '\')"><i class="fas fa-trash"></i></button>'
+            ].join(' ');
+        }
+
+        function formatAvailWeeks(value) {
+            if (!value) return '';
+            
+            // 确保字符串长度为7位，不足补0
+            const weeks = value.padEnd(7, '0');
+            
+            // 判断是否全周
+            if (weeks === '1111111') {
+                return '全周';
+            }
+            
+            const weekNames = ['一', '二', '三', '四', '五', '六', '日'];
+            let result = [];
+            
+            for (let i = 0; i < 7; i++) {
+                if (weeks[i] === '1') {
+                    result.push(weekNames[i]);
+                }
+            }
+            
+            return result.join('、');
+        }
+
+        function showAddModal() {
+            $('#serviceModalLabel').text('新增包价');
+            $('#serviceForm')[0].reset();
+            $('#serviceId').val('');
+            // 重置所有星期checkbox
+            $('.week-checkboxes input[type="checkbox"]').prop('checked', false);
+            
+            // 从Session中获取ChainId和HotelId
+            $.ajax({
+                url: '/api/session/info',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        $('#chainName').text(response.data.chainName || '');
+                        $('#hotelName').text(response.data.hotelName || '');
+                    } else {
+                        alert('获取集团和酒店信息失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('获取集团和酒店信息失败：' + xhr.responseText);
+                }
+            });
+            
+            serviceModal.show();
+        }
+
+        function showEditModal(serviceId) {
+            $('#serviceModalLabel').text('编辑包价');
+            $.ajax({
+                url: '/api/additionalservices/' + serviceId,
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const service = response.data;
+                        $('#serviceId').val(service.serviceId);
+                        $('#serviceName').val(service.serviceName);
+                        $('#description').val(service.description);
+                        $('#unitPrice').val(service.unitPrice);
+                        $('#unitNum').val(service.unitNum);
+                        $('#limitStartTime').val(service.limitStartTime);
+                        $('#limitEndTime').val(service.limitEndTime);
+                        
+                        // 设置星期checkbox
+                        if (service.availWeeks) {
+                            const weeks = service.availWeeks.split('');
+                            $('#monday').prop('checked', weeks[0] === '1');
+                            $('#tuesday').prop('checked', weeks[1] === '1');
+                            $('#wednesday').prop('checked', weeks[2] === '1');
+                            $('#thursday').prop('checked', weeks[3] === '1');
+                            $('#friday').prop('checked', weeks[4] === '1');
+                            $('#saturday').prop('checked', weeks[5] === '1');
+                            $('#sunday').prop('checked', weeks[6] === '1');
+                        }
+                        
+                        // 从Session中获取ChainId和HotelId
+                        $.ajax({
+                            url: '/api/session/info',
+                            type: 'GET',
+                            success: function(sessionResponse) {
+                                if (sessionResponse.success) {
+                                    $('#chainName').text(sessionResponse.data.chainName || '');
+                                    $('#hotelName').text(sessionResponse.data.hotelName || '');
+                                } else {
+                                    alert('获取集团和酒店信息失败：' + sessionResponse.message);
+                                }
+                            },
+                            error: function(xhr) {
+                                alert('获取集团和酒店信息失败：' + xhr.responseText);
+                            }
+                        });
+                        
+                        serviceModal.show();
+                    } else {
+                        alert('获取包价信息失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('获取包价信息失败：' + xhr.responseText);
+                }
+            });
+        }
+
+        function saveService() {
+            const serviceId = $('#serviceId').val();
+            
+            // 生成可用星期字符串
+            let availWeeks = '';
+            availWeeks += $('#monday').is(':checked') ? '1' : '0';
+            availWeeks += $('#tuesday').is(':checked') ? '1' : '0';
+            availWeeks += $('#wednesday').is(':checked') ? '1' : '0';
+            availWeeks += $('#thursday').is(':checked') ? '1' : '0';
+            availWeeks += $('#friday').is(':checked') ? '1' : '0';
+            availWeeks += $('#saturday').is(':checked') ? '1' : '0';
+            availWeeks += $('#sunday').is(':checked') ? '1' : '0';
+            
+            const service = {
+                serviceName: $('#serviceName').val(),
+                description: $('#description').val(),
+                unitPrice: $('#unitPrice').val(),
+                unitNum: $('#unitNum').val(),
+                limitStartTime: $('#limitStartTime').val(),
+                limitEndTime: $('#limitEndTime').val(),
+                availWeeks: availWeeks
+            };
+
+            const url = serviceId ? '/api/additionalservices/' + serviceId : '/api/additionalservices';
+            const method = serviceId ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(service),
+                success: function(response) {
+                    if (response.success) {
+                        serviceModal.hide();
+                        loadServices();
+                    } else {
+                        alert('保存失败：' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('保存失败：' + xhr.responseText);
+                }
+            });
+        }
+
+        function deleteService(serviceId) {
+            if (confirm('确定要删除这个服务吗？')) {
+                $.ajax({
+                    url: '/api/additionalservices/' + serviceId,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.success) {
+                            loadServices();
+                        } else {
+                            alert('删除失败：' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('删除失败：' + xhr.responseText);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

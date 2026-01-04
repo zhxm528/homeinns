@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.chain.mapper.ChainMapper">
+    <resultMap id="BaseResultMap" type="com.zai.chain.entity.Chain">
+        <id column="chain_id" property="chainId" jdbcType="VARCHAR"/>
+        <result column="chain_code" property="chainCode" jdbcType="VARCHAR"/>
+        <result column="chain_name" property="chainName" jdbcType="VARCHAR"/>
+        <result column="contact_email" property="contactEmail" jdbcType="VARCHAR"/>
+        <result column="contact_phone" property="contactPhone" jdbcType="VARCHAR"/>
+        <result column="headquarters_address" property="headquartersAddress" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        chain_id, chain_code, chain_name, contact_email, contact_phone, headquarters_address, status, created_at
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.chain.entity.Chain">
+        INSERT INTO zai.chains (
+            chain_id, chain_code, chain_name, contact_email, contact_phone, headquarters_address, status, created_at
+        ) VALUES (
+            #{chainId}, #{chainCode}, #{chainName}, #{contactEmail}, #{contactPhone}, #{headquartersAddress}, #{status}, NOW()
+        )
+    </insert>
+
+    <delete id="deleteByChainId" parameterType="java.lang.String">
+        DELETE FROM zai.chains WHERE chain_id = #{chainId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.chain.entity.Chain">
+        UPDATE zai.chains
+        SET chain_code = #{chainCode},
+            chain_name = #{chainName},
+            contact_email = #{contactEmail},
+            contact_phone = #{contactPhone},
+            headquarters_address = #{headquartersAddress},
+            status = #{status}
+        WHERE chain_id = #{chainId}
+    </update>
+
+    <select id="selectByChainId" resultType="com.zai.chain.entity.Chain">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        WHERE chain_id = #{chainId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        <where>
+            <if test="chainCode != null and chainCode != ''">
+                AND chain_code LIKE CONCAT('%', #{chainCode}, '%')
+            </if>
+            <if test="chainName != null and chainName != ''">
+                AND chain_name LIKE CONCAT('%', #{chainName}, '%')
+            </if>
+            <if test="contactEmail != null and contactEmail != ''">
+                AND contact_email LIKE CONCAT('%', #{contactEmail}, '%')
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                AND contact_phone LIKE CONCAT('%', #{contactPhone}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    
+
+    <select id="selectByChainCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        WHERE chain_code = #{chainCode}
+    </select>
+
+    <select id="selectByKeyword" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    chain_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR chain_code LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="getComponentsSelectChainList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM zai.chains
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    <if test="chainCode != null and chainCode != ''">
+                        chain_code LIKE CONCAT('%', #{keyword}, '%')
+                        OR
+                        chain_name LIKE CONCAT('%', #{keyword}, '%')
+                    </if>
+                )
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="chainId != null and chainId != ''">
+                AND chain_id = #{chainId}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="com.zai.chain.entity.Chain">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chains
+        WHERE chain_id = #{chainId}
+    </select>
+</mapper> 

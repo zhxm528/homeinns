@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- 引入vmenu的头部，包含样式和脚本 -->
+    <div th:replace="common/vmenu :: head"></div>
+    <title>酒店管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td, .table th {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .status-badge {
+            padding: 0.4em 0.8em;
+            border-radius: 50rem;
+            font-size: 0.875em;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background-color: #fff7ed;
+            color: #9a3412;
+        }
+
+        .status-failed {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.375rem;
+            line-height: 1;
+            border-radius: 0.375rem;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .search-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 引入垂直导航栏 -->
+    <div th:replace="common/vmenu :: vmenu"></div>
+    
+    <!-- 主内容区域 -->
+    <div class="v-content">
+        <div class="main-content">
+            <div class="container">
+                <div class="page-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0"><i class="fas fa-hotel me-2"></i>酒店管理</h2>
+                    </div>
+                </div>
+                
+                <!-- 搜索表单 -->
+                <div class="search-card">
+                    <form class="search-form" id="searchForm">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-3">
+                                <div class="form-floating">
+                                    <select class="form-select" id="searchChainId" name="chainId">
+                                        <option value="">全部集团</option>
+                                    </select>
+                                    <label for="searchChainId">所属集团</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="searchHotelName" name="hotelName" placeholder="酒店名称">
+                                    <label for="searchHotelName">酒店名称</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="searchCityName" name="cityName" placeholder="所在城市">
+                                    <label for="searchCityName">所在城市</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="searchAddress" name="address" placeholder="详细地址">
+                                    <label for="searchAddress">详细地址</label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-grow-1" onclick="searchHotels()">
+                                    <i class="fas fa-search me-2"></i>搜索
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="showAddHotelModal()">
+                                    <i class="fas fa-plus me-2"></i>新增
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 酒店表格 -->
+                <div class="table-container">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>所属集团</th>
+                                <th>酒店名称</th>
+                                <th>地址</th>
+                                <th>联系电话</th>
+                                <th>联系邮箱</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hotelTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Hotel Modal -->
+    <div class="modal fade" id="hotelModal" tabindex="-1" aria-labelledby="hotelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hotelModalLabel">酒店信息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="hotelForm">
+                        <input type="hidden" id="hotelId" name="hotelId">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="chainId" class="form-label">所属集团</label>
+                                <select class="form-select" id="chainId" name="chainId" required>
+                                    <option value="">请选择集团</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">状态</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="1">启用</option>
+                                    <option value="0">禁用</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="hotelName" class="form-label">酒店名称</label>
+                                <input type="text" class="form-control" id="hotelName" name="hotelName" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="cityId" class="form-label">所在城市</label>
+                                <select class="form-select" id="cityId" name="cityId" required>
+                                    <option value="">请选择城市</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="address" class="form-label">详细地址</label>
+                                <input type="text" class="form-control" id="address" name="address" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="contactPhone" class="form-label">联系电话</label>
+                                <input type="tel" class="form-control" id="contactPhone" name="contactPhone">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="contactEmail" class="form-label">联系邮箱</label>
+                                <input type="email" class="form-control" id="contactEmail" name="contactEmail">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveHotel()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 基础JavaScript库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+    
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function() {
+            console.log('页面加载完成');
+            loadChains();  // 加载集团列表
+            loadCities();  // 加载城市列表
+            loadHotels();
+            
+            $('#searchForm input').keypress(function(e) {
+                if(e.which == 13) {
+                    e.preventDefault();
+                    searchHotels();
+                }
+            });
+        });
+
+        function showLoading() {
+            $('.loading').fadeIn(200);
+        }
+
+        function hideLoading() {
+            $('.loading').fadeOut(200);
+        }
+
+        function loadChains() {
+            $.get('/chain/list')
+                .done(function(chains) {
+                    const chainSelect = $('#chainId');
+                    const searchChainSelect = $('#searchChainId');
+                    chainSelect.empty();
+                    searchChainSelect.empty();
+                    chainSelect.append('<option value="">请选择集团</option>');
+                    searchChainSelect.append('<option value="">全部集团</option>');
+                    chains.forEach(function(chain) {
+                        chainSelect.append(`<option value="${chain.chainId}">${chain.chainName}</option>`);
+                        searchChainSelect.append(`<option value="${chain.chainId}">${chain.chainName}</option>`);
+                    });
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('加载集团列表失败:', textStatus, errorThrown);
+                });
+        }
+
+        function loadCities() {
+            $.get('/city/list')
+                .done(function(cities) {
+                    const citySelect = $('#cityId');
+                    citySelect.empty();
+                    citySelect.append('<option value="">请选择城市</option>');
+                    cities.forEach(function(city) {
+                        citySelect.append(`<option value="${city.cityId}">${city.cityName}</option>`);
+                    });
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('加载城市列表失败:', textStatus, errorThrown);
+                });
+        }
+
+        function loadHotels() {
+            showLoading();
+            $.get('/hotel/list')
+                .done(function(hotels) {
+                    console.log('Received hotels:', hotels);
+                    hotels.forEach(function(hotel) {
+                        console.log('Hotel:', {
+                            id: hotel.hotelId,
+                            name: hotel.hotelName,
+                            phone: hotel.contactPhone,
+                            email: hotel.contactEmail
+                        });
+                    });
+                    renderHotels(hotels);
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error loading hotels:', textStatus, errorThrown);
+                    $('#hotelTableBody').html('<tr><td colspan="7" class="text-center text-danger">加载数据失败：' + errorThrown + '</td></tr>');
+                })
+                .always(function() {
+                    hideLoading();
+                });
+        }
+
+        function searchHotels() {
+            const chainId = $('#searchChainId').val();
+            const hotelName = $('#searchHotelName').val();
+            const cityName = $('#searchCityName').val();
+            const address = $('#searchAddress').val();
+
+            $.ajax({
+                url: '/hotel/list',
+                type: 'GET',
+                data: {
+                    chainId: chainId,
+                    hotelName: hotelName,
+                    cityName: cityName,
+                    address: address
+                },
+                success: function(hotels) {
+                    renderHotels(hotels);
+                },
+                error: function() {
+                    alert('获取酒店列表失败');
+                }
+            });
+        }
+
+        function renderHotels(hotels) {
+            const hotelTableBody = $('#hotelTableBody');
+            hotelTableBody.empty();
+
+            if (!Array.isArray(hotels) || hotels.length === 0) {
+                hotelTableBody.html('<tr><td colspan="7" class="text-center">暂无数据</td></tr>');
+                return;
+            }
+
+            const rows = hotels.map(hotel => {
+                return `
+                <tr>
+                    <td>${hotel.chainName || '-'}</td>
+                    <td>${hotel.hotelName || '-'}</td>
+                    <td>${hotel.address || '-'}</td>
+                    <td>${hotel.contactPhone || '-'}</td>
+                    <td>${hotel.contactEmail || '-'}</td>
+                    <td>
+                        <span class="status-badge ${hotel.status === 1 ? 'status-completed' : 'status-failed'}">
+                            ${hotel.status === 1 ? '启用' : '禁用'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editHotel('${hotel.hotelId}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteHotel('${hotel.hotelId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            hotelTableBody.html(rows);
+        }
+
+        function showAddHotelModal() {
+            $('#hotelForm')[0].reset();
+            $('#hotelId').val('');
+            $('#chainId').val('');
+            $('#cityId').val('');
+            $('#status').val('1');
+            $('#hotelModalLabel').text('新增酒店');
+            const modal = new bootstrap.Modal($('#hotelModal'));
+            modal.show();
+        }
+
+        function editHotel(id) {
+            showLoading();
+            $.get(`/hotel/${id}`)
+                .done(function(hotel) {
+                    console.log('编辑酒店数据:', hotel);
+                    $('#hotelId').val(hotel.hotelId);
+                    $('#chainId').val(hotel.chainId);
+                    $('#cityId').val(hotel.cityId);
+                    $('#status').val(hotel.status ? hotel.status.toString() : '1');  // 如果status为null，默认设为1
+                    $('#hotelName').val(hotel.hotelName);
+                    $('#address').val(hotel.address);
+                    $('#contactPhone').val(hotel.contactPhone);
+                    $('#contactEmail').val(hotel.contactEmail);
+                    
+                    $('#hotelModalLabel').text('编辑酒店');
+                    const modal = new bootstrap.Modal($('#hotelModal'));
+                    modal.show();
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error loading hotel:', textStatus, errorThrown);
+                    alert('加载酒店信息失败：' + errorThrown);
+                })
+                .always(function() {
+                    hideLoading();
+                });
+        }
+
+        function deleteHotel(id) {
+            if (!confirm('确定要删除该酒店吗？')) return;
+
+            showLoading();
+            $.ajax({
+                url: `/hotel/${id}`,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response) {
+                        loadHotels();
+                    } else {
+                        alert('删除失败');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting hotel:', error);
+                    alert('删除失败：' + (xhr.responseText || '未知错误'));
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+
+        function saveHotel() {
+            const hotelData = {
+                hotelId: $('#hotelId').val(),
+                chainId: $('#chainId').val(),
+                cityId: $('#cityId').val(),
+                status: $('#status').val(),
+                hotelName: $('#hotelName').val(),
+                address: $('#address').val(),
+                contactPhone: $('#contactPhone').val(),
+                contactEmail: $('#contactEmail').val()
+            };
+
+            // 验证必填字段
+            if (!hotelData.chainId) {
+                alert('请选择所属集团');
+                return;
+            }
+            if (!hotelData.cityId) {
+                alert('请选择所在城市');
+                return;
+            }
+            if (!hotelData.hotelName) {
+                alert('请输入酒店名称');
+                return;
+            }
+            if (!hotelData.address) {
+                alert('请输入详细地址');
+                return;
+            }
+
+            const isNew = !hotelData.hotelId;
+            const method = isNew ? 'POST' : 'PUT';
+            const url = isNew ? '/hotel' : `/hotel/${hotelData.hotelId}`;
+
+            showLoading();
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(hotelData),
+                success: function(response) {
+                    console.log('保存酒店响应:', response);
+                    $('#hotelModal').modal('hide');
+                    loadHotels();
+                },
+                error: function(xhr, status, error) {
+                    console.error('保存酒店失败:', {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                    alert('保存失败：' + (xhr.responseText || '未知错误'));
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

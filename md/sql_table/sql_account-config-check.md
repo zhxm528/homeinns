@@ -1,6 +1,5 @@
 #sql语句
-sql
-```
+```sql
 --检查科目配置是否符合每日实际收入情况
 DECLARE @BDate date = '2025-09-26';  -- 起始日
 DECLARE @Days  int  = 1;            -- 天数窗口；想查当天可设为 1

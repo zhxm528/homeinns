@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.hotel.mapper.HotelMapper">
+    <resultMap id="HotelResultMap" type="com.zai.hotel.entity.Hotel">
+        <id column="hotel_id" property="hotelId"/>
+        <result column="hotel_name" property="hotelName"/>
+        <result column="hotel_code" property="hotelCode"/>
+        <result column="address" property="address"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="contact_email" property="contactEmail"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="chain_id" property="chainId"/>
+        <result column="chain_name" property="chainName"/>
+        <result column="city_id" property="cityId"/>
+        <result column="city_name" property="cityName"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="ownership_type" property="ownershipType"/>
+        <result column="management_model" property="managementModel"/>
+        <result column="management_company" property="managementCompany"/>
+        <result column="brand" property="brand"/>
+        <result column="region" property="region"/>
+        <result column="city_area" property="cityArea"/>
+        <result column="country" property="country"/>
+        <result column="pms_version" property="pmsVersion"/>
+        <result column="opening_date" property="openingDate"/>
+        <result column="last_renovation_date" property="lastRenovationDate"/>
+        <result column="closure_date" property="closureDate"/>
+        <result column="total_physical_rooms" property="totalPhysicalRooms"/>
+        <result column="base_price" property="basePrice"/>
+        <result column="threshold_price" property="thresholdPrice"/>
+        <result column="breakfast_price" property="breakfastPrice"/>
+        <result column="parking_price" property="parkingPrice"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        h.hotel_id, h.chain_id, h.hotel_code, h.hotel_name, h.address, h.description, h.city_id, 
+        h.country, h.contact_email, h.contact_phone, h.status, h.ownership_type, h.management_model, 
+        h.management_company, h.brand, h.region, h.city_area, h.pms_version, h.opening_date, 
+        h.last_renovation_date, h.closure_date, h.total_physical_rooms, h.base_price, 
+        h.threshold_price, h.breakfast_price, h.parking_price, 
+        h.created_at, h.updated_at,
+        c.city_name
+    </sql>
+
+    <sql id="Base_Column_List_Hotel">
+        h.hotel_id, h.chain_id, h.hotel_code, h.hotel_name, h.address, h.description, h.city_id, 
+        h.country, h.contact_email, h.contact_phone, h.status, h.ownership_type, h.management_model, 
+        h.management_company, h.brand, h.region, h.city_area, h.pms_version, h.opening_date, 
+        h.last_renovation_date, h.closure_date, h.total_physical_rooms, h.base_price, 
+        h.threshold_price, h.breakfast_price, h.parking_price, h.created_at, h.updated_at
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.hotel.entity.Hotel">
+        INSERT INTO hotels (
+            hotel_id, chain_id, hotel_code, hotel_name, address, description, city_id, 
+            country, contact_email, contact_phone, status, ownership_type, management_model,
+            management_company, brand, region, city_area, pms_version, opening_date,
+            last_renovation_date, closure_date, total_physical_rooms, base_price,
+            threshold_price, breakfast_price, parking_price, created_at, updated_at
+        ) VALUES (
+            #{hotelId}, #{chainId}, #{hotelCode}, #{hotelName}, #{address}, #{description}, #{cityId}, 
+            #{country}, #{contactEmail}, #{contactPhone}, #{status}, #{ownershipType}, #{managementModel},
+            #{managementCompany}, #{brand}, #{region}, #{cityArea}, #{pmsVersion}, #{openingDate},
+            #{lastRenovationDate}, #{closureDate}, #{totalPhysicalRooms}, #{basePrice},
+            #{thresholdPrice}, #{breakfastPrice}, #{parkingPrice}, NOW(), NOW()
+        )
+    </insert>
+
+    <delete id="deleteByHotelId" parameterType="java.lang.String">
+        DELETE FROM hotels WHERE hotel_id = #{hotelId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.hotel.entity.Hotel">
+        UPDATE hotels
+        <set>
+            <if test="hotelName != null">hotel_name = #{hotelName},</if>
+            <if test="hotelCode != null">hotel_code = #{hotelCode},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="cityId != null">city_id = #{cityId},</if>
+            <if test="country != null">country = #{country},</if>
+            <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="ownershipType != null">ownership_type = #{ownershipType},</if>
+            <if test="managementModel != null">management_model = #{managementModel},</if>
+            <if test="managementCompany != null">management_company = #{managementCompany},</if>
+            <if test="brand != null">brand = #{brand},</if>
+            <if test="region != null">region = #{region},</if>
+            <if test="cityArea != null">city_area = #{cityArea},</if>
+            <if test="pmsVersion != null">pms_version = #{pmsVersion},</if>
+            <if test="openingDate != null">opening_date = #{openingDate},</if>
+            <if test="lastRenovationDate != null">last_renovation_date = #{lastRenovationDate},</if>
+            <if test="closureDate != null">closure_date = #{closureDate},</if>
+            <if test="totalPhysicalRooms != null">total_physical_rooms = #{totalPhysicalRooms},</if>
+            <if test="basePrice != null">base_price = #{basePrice},</if>
+            <if test="thresholdPrice != null">threshold_price = #{thresholdPrice},</if>
+            <if test="breakfastPrice != null">breakfast_price = #{breakfastPrice},</if>
+            <if test="parkingPrice != null">parking_price = #{parkingPrice},</if>
+            updated_at = NOW()
+        </set>
+        WHERE hotel_id = #{hotelId}
+    </update>
+
+    <select id="selectByHotelId" resultMap="HotelResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM hotels h
+        LEFT JOIN cities c ON h.city_id = c.city_code
+        WHERE h.hotel_id = #{hotelId}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectByHotelCode" resultMap="HotelResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM hotels h
+        LEFT JOIN cities c ON h.city_id = c.city_code
+        WHERE h.hotel_code = #{hotelCode}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectAll" resultMap="HotelResultMap">
+        SELECT 
+            h.hotel_id, h.hotel_code, h.hotel_name, h.address, h.contact_phone, h.contact_email,
+            h.description, h.status, h.chain_id, h.city_id, h.country, h.ownership_type,
+            h.management_model, h.management_company, h.brand, h.region, h.city_area,
+            h.pms_version, h.opening_date, h.last_renovation_date, h.closure_date,
+            h.total_physical_rooms, h.base_price, h.threshold_price, h.breakfast_price,
+            h.parking_price, h.created_at, h.updated_at,
+            c.chain_name,c.chain_code,c.chain_id,
+            ci.city_name,ci.city_code,ci.province
+        FROM zai.hotels h
+        LEFT JOIN zai.chains c ON h.chain_id = c.chain_id
+        LEFT JOIN zai.cities ci ON h.city_id = ci.city_code
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectByCondition" resultMap="HotelResultMap">
+        SELECT 
+            h.hotel_id, h.hotel_code, h.hotel_name, h.address, h.contact_phone, h.contact_email,
+            h.description, h.status, h.chain_id, h.city_id, h.country, h.ownership_type,
+            h.management_model, h.management_company, h.brand, h.region, h.city_area,
+            h.pms_version, h.opening_date, h.last_renovation_date, h.closure_date,
+            h.total_physical_rooms, h.base_price, h.threshold_price, h.breakfast_price,
+            h.parking_price, h.created_at, h.updated_at,
+            c.chain_name,c.chain_code,c.chain_id,
+            ci.city_name,ci.city_code,ci.province
+        FROM zai.hotels h
+        LEFT JOIN zai.chains c ON h.chain_id = c.chain_id
+        LEFT JOIN zai.cities ci ON h.city_id = ci.city_code
+        <where>
+            <if test="hotelName != null and hotelName != ''">
+                AND h.hotel_name LIKE CONCAT('%', #{hotelName}, '%')
+            </if>
+            <if test="chainId != null and chainId != ''">
+                AND h.chain_id = #{chainId}
+            </if>
+            <if test="cityId != null and cityId != ''">
+                AND h.city_id = #{cityId}
+            </if>
+        </where>
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectByChainId" resultMap="HotelResultMap">
+        SELECT * FROM hotels WHERE chain_id = #{chainId} ORDER BY hotel_code ASC
+    </select>
+
+    <!-- 根据酒店代码和连锁ID查询酒店 -->
+    <select id="selectByHotelCodeAndChain" resultMap="HotelResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM hotels h
+        LEFT JOIN cities c ON h.city_id = c.city_id
+        WHERE h.hotel_code = #{hotelCode}
+        AND h.chain_id = #{chainId}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectByConditionWithPaging" resultType="com.zai.hotel.entity.Hotel">
+        SELECT 
+            h.*,
+            c.chain_name as chainName,
+            c.chain_code as chainCode,
+            c.chain_id as chainId,
+            ct.city_name as cityName,
+            ct.city_code as cityCode,
+            ct.province as province
+        FROM hotels h
+        LEFT JOIN chains c ON h.chain_id = c.chain_id
+        LEFT JOIN cities ct ON h.city_id = ct.city_code
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND h.chain_id = #{chainId}
+            </if>            
+            <if test="(hotelCode != null and hotelCode != '') or (hotelName != null and hotelName != '')">
+                AND (
+                    <if test="hotelCode != null and hotelCode != ''">
+                        h.hotel_code like CONCAT('%', #{hotelCode}, '%')
+                    </if>
+                    <if test="hotelCode != null and hotelCode != '' and hotelName != null and hotelName != ''">
+                        OR
+                    </if>
+                    <if test="hotelName != null and hotelName != ''">
+                        h.hotel_name like CONCAT('%', #{hotelName}, '%')
+                    </if>
+                )
+            </if>
+            <if test="cityId != null and cityId != ''">
+                AND h.city_id = #{cityId}
+            </if>
+            <if test="country != null and country != ''">
+                AND h.country = #{country}
+            </if>
+            <if test="status != null and status != '' and status != '-1'">
+                AND h.status = #{status}
+            </if>
+            <if test="address != null and address != ''">
+                AND h.address like CONCAT('%', #{address}, '%')
+            </if>
+            <if test="description != null and description != ''">
+                AND h.description like CONCAT('%', #{description}, '%')
+            </if>
+            <if test="managementModel != null and managementModel != ''">
+                AND h.management_model = #{managementModel}
+            </if>
+            <if test="ownershipType != null and ownershipType != ''">
+                AND h.ownership_type = #{ownershipType}
+            </if>
+            <if test="managementCompany != null and managementCompany != ''">
+                AND h.management_company = #{managementCompany}
+            </if>
+            <if test="brand != null and brand != ''">
+                AND h.brand = #{brand}
+            </if>
+            <if test="region != null and region != ''">
+                AND h.region = #{region}
+            </if>
+            <if test="cityArea != null and cityArea != ''">
+                AND h.city_area = #{cityArea}
+            </if>
+            <if test="pmsVersion != null and pmsVersion != ''"> 
+                AND h.pms_version = #{pmsVersion}
+            </if>
+        </where>
+        ORDER BY h.hotel_code ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM hotels h
+        LEFT JOIN chains c ON h.chain_id = c.chain_id
+        LEFT JOIN cities ct ON h.city_id = ct.city_code
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND h.chain_id = #{chainId}
+            </if>            
+            <if test="(hotelCode != null and hotelCode != '') or (hotelName != null and hotelName != '')">
+                AND (
+                    <if test="hotelCode != null and hotelCode != ''">
+                        h.hotel_code like CONCAT('%', #{hotelCode}, '%')
+                    </if>
+                    <if test="hotelCode != null and hotelCode != '' and hotelName != null and hotelName != ''">
+                        OR
+                    </if>
+                    <if test="hotelName != null and hotelName != ''">
+                        h.hotel_name like CONCAT('%', #{hotelName}, '%')
+                    </if>
+                )
+            </if>
+            <if test="cityId != null and cityId != ''">
+                AND h.city_id = #{cityId}
+            </if>
+            <if test="country != null and country != ''">
+                AND h.country = #{country}
+            </if>
+            <if test="status != null and status != '' and status != '-1'">
+                AND h.status = #{status}
+            </if>
+            <if test="address != null and address != ''">
+                AND h.address like CONCAT('%', #{address}, '%')
+            </if>
+            <if test="description != null and description != ''">
+                AND h.description like CONCAT('%', #{description}, '%')
+            </if>
+            <if test="managementModel != null and managementModel != ''">
+                AND h.management_model = #{managementModel}
+            </if>
+            <if test="ownershipType != null and ownershipType != ''">
+                AND h.ownership_type = #{ownershipType}
+            </if>
+            <if test="managementCompany != null and managementCompany != ''">
+                AND h.management_company = #{managementCompany}
+            </if>
+            <if test="brand != null and brand != ''">
+                AND h.brand = #{brand}
+            </if>
+            <if test="region != null and region != ''">
+                AND h.region = #{region}
+            </if>
+            <if test="cityArea != null and cityArea != ''">
+                AND h.city_area = #{cityArea}
+            </if>
+            <if test="pmsVersion != null and pmsVersion != ''"> 
+                AND h.pms_version = #{pmsVersion}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateById" parameterType="com.zai.hotel.entity.Hotel">
+        UPDATE hotels
+        SET hotel_name = #{hotelName},
+            hotel_code = #{hotelCode},
+            description = #{description},
+            brand = #{brand},
+            region = #{region},
+            city_area = #{cityArea},
+            country = #{country},
+            address = #{address},
+            city_id = #{cityId},
+            status = #{status},
+            contact_email = #{contactEmail},
+            contact_phone = #{contactPhone},
+            ownership_type = #{ownershipType},
+            management_model = #{managementModel},
+            management_company = #{managementCompany},
+            brand = #{brand},
+            region = #{region},
+            city_area = #{cityArea},
+            pms_version = #{pmsVersion},
+            opening_date = #{openingDate},
+            last_renovation_date = #{lastRenovationDate},
+            closure_date = #{closureDate},
+            total_physical_rooms = #{totalPhysicalRooms},
+            base_price = #{basePrice},
+            threshold_price = #{thresholdPrice},
+            breakfast_price = #{breakfastPrice},
+            parking_price = #{parkingPrice},
+            updated_at = #{updatedAt}
+        WHERE hotel_id = #{hotelId}
+    </update>
+    
+    <select id="selectByChainIdAndHotelCode" resultType="com.zai.hotel.entity.Hotel">
+        SELECT * FROM hotels 
+        WHERE chain_id = #{chainId} 
+        AND hotel_code = #{hotelCode}
+        ORDER BY hotel_code ASC
+    </select>
+
+    <select id="selectHotelCodeByChainId" resultMap="HotelResultMap">
+        SELECT h.hotel_code
+        FROM hotels h
+        WHERE h.chain_id = #{chainId} 
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectHotelCodeByChainIdExcludeHotelCode" resultMap="HotelResultMap">
+        SELECT 
+        h.hotel_code
+        FROM hotels h
+        WHERE h.chain_id = #{chainId}
+        AND h.hotel_code != #{hotelCode}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="setLocalStorageHotelByHotelId" resultType="com.zai.hotel.entity.Hotel">
+        SELECT 
+        <include refid="Base_Column_List_Hotel"/>
+        FROM hotels h
+        WHERE h.hotel_id = #{hotelId}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <update id="updateHotelIdByUserId" parameterType="com.zai.hotel.entity.Hotel">
+        UPDATE hotels
+        <set>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            updated_at = NOW()
+        </set>
+        WHERE hotel_id = #{hotelId}
+    </update>
+
+    <select id="selectByPrimaryKey" resultType="com.zai.hotel.entity.Hotel">
+        SELECT 
+        <include refid="Base_Column_List_Hotel"/>
+        FROM hotels h
+        WHERE h.hotel_id = #{hotelId}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <!-- 根据预算查询条件获取酒店列表 -->
+    <select id="getBudgetHotelList" resultMap="HotelResultMap">
+        SELECT 
+            h.hotel_id, h.hotel_code, h.hotel_name, h.address, h.contact_phone, h.contact_email,
+            h.description, h.status, h.chain_id, h.city_id, h.country, h.ownership_type,
+            h.management_model, h.management_company, h.brand, h.region, h.city_area,
+            h.pms_version, h.opening_date, h.last_renovation_date, h.closure_date,
+            h.total_physical_rooms, h.base_price, h.threshold_price, h.breakfast_price,
+            h.parking_price, h.created_at, h.updated_at,
+            c.chain_name, c.chain_code, c.chain_id,
+            ci.city_name, ci.city_code, ci.province
+        FROM hotels h
+        LEFT JOIN chains c ON h.chain_id = c.chain_id
+        LEFT JOIN cities ci ON h.city_id = ci.city_code
+        <where>
+            <if test="hotelId != null and hotelId != ''">
+                AND h.hotel_id = #{hotelId}
+            </if>
+            <if test="chainId != null and chainId != ''">
+                AND h.chain_id = #{chainId}
+            </if>
+            <if test="cityId != null and cityId != ''">
+                AND h.city_id = #{cityId}
+            </if>
+            <if test="hotelManagementModel != null and hotelManagementModel != ''">
+                AND h.management_model = #{hotelManagementModel}
+            </if>
+        </where>
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <select id="selectByChainIdExcludeHotelCode" resultMap="HotelResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM hotels h
+        LEFT JOIN cities c ON h.city_id = c.city_code
+        WHERE h.chain_id = #{chainId}
+        AND h.hotel_code != #{hotelCode}
+        ORDER BY h.hotel_code ASC
+    </select>
+
+    <!-- 批量查询已存在的酒店代码 -->
+    <select id="selectExistingHotelCodes" resultType="java.lang.String">
+        SELECT hotel_code 
+        FROM hotels 
+        WHERE hotel_code IN
+        <foreach collection="hotelCodes" item="hotelCode" open="(" separator="," close=")">
+            #{hotelCode}
+        </foreach>
+    </select>
+    <select id="selectByComponentWithPaging" resultType="com.zai.hotel.entity.Hotel">
+        SELECT 
+            h.*,
+            c.chain_name as chainName,
+            c.chain_code as chainCode,
+            c.chain_id as chainId,
+            ct.city_name as cityName,
+            ct.city_code as cityCode,
+            ct.province as province
+        FROM hotels h
+        LEFT JOIN chains c ON h.chain_id = c.chain_id
+        LEFT JOIN cities ct ON h.city_id = ct.city_code
+        <where>
+            <if test="chainId != null and chainId != ''">
+                AND h.chain_id = #{chainId}
+            </if>            
+            <if test="(hotelCode != null and hotelCode != '') or (hotelName != null and hotelName != '')">
+                AND (
+                    <if test="hotelCode != null and hotelCode != ''">
+                        h.hotel_code like CONCAT('%', #{hotelCode}, '%')
+                    </if>
+                    <if test="hotelCode != null and hotelCode != '' and hotelName != null and hotelName != ''">
+                        OR
+                    </if>
+                    <if test="hotelName != null and hotelName != ''">
+                        h.hotel_name like CONCAT('%', #{hotelName}, '%')
+                    </if>
+                )
+            </if>
+            
+        </where>
+        ORDER BY h.hotel_code ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+</mapper> 

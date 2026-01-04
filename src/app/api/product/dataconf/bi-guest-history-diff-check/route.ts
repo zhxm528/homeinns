@@ -53,6 +53,7 @@ BEGIN
     -- 1. 清理旧临时表
     ---------------------------------------------------------------
     IF OBJECT_ID('tempdb..#BIData') IS NOT NULL DROP TABLE #BIData;
+    IF OBJECT_ID('tempdb..#BIDataRoomType') IS NOT NULL DROP TABLE #BIDataRoomType;
     IF OBJECT_ID('tempdb..#CRSData') IS NOT NULL DROP TABLE #CRSData;
 
     ---------------------------------------------------------------
@@ -69,7 +70,20 @@ BEGIN
     GROUP BY hotelid, CAST(bdate AS DATE);
 
     ---------------------------------------------------------------
-    -- 3. CRS 客史数据汇总
+    -- 3. 新增：BI 房型数据汇总（bi_rmtype）
+    ---------------------------------------------------------------
+    SELECT 
+        hotelid,
+        CAST(bdate AS DATE) AS bdate,
+        SUM(ISNULL(rms_occ, 0)) AS occ,
+        SUM(ISNULL(rev_rm, 0)) AS rm
+    INTO #BIDataRoomType
+    FROM [192.168.210.170].[Report].dbo.bi_rmtype
+    WHERE bdate BETWEEN @StartDate AND @EndDate
+    GROUP BY hotelid, CAST(bdate AS DATE);
+
+    ---------------------------------------------------------------
+    -- 4. CRS 客史数据汇总
     ---------------------------------------------------------------
     SELECT 
         a.HotelCd AS hotelid,
@@ -94,7 +108,7 @@ BEGIN
     GROUP BY a.HotelCd, CAST(b.DailyDate AS DATE);
 
     ---------------------------------------------------------------
-    -- 4. 对比汇总结果
+    -- 5. 对比汇总结果（增加房型数据列）
     ---------------------------------------------------------------
     SELECT 
         c.HotelCode,
@@ -102,19 +116,39 @@ BEGIN
         c.PMSType,
         c.PropertyType,
         bi.bdate,
+
+        -- 原 BI 汇总
         bi.occ AS BI间夜,
-        crs.occ AS CRS间夜,
         bi.rm AS BI金额,
+
+        -- 新增：BI 房型汇总
+        ISNULL(rt.occ, 0) AS BI房型间夜,
+        ISNULL(rt.rm, 0)  AS BI房型金额,
+
+        -- CRS 汇总
+        crs.occ AS CRS间夜,
         crs.rm AS CRS金额,
+
+        -- 主金额差异
         ROUND(ISNULL(crs.rm,0) - ISNULL(bi.rm,0), 2) AS 金额差,
         CASE 
             WHEN ISNULL(bi.rm,0) = 0 THEN NULL
             ELSE ROUND(((ISNULL(crs.rm,0) - ISNULL(bi.rm,0)) / ISNULL(bi.rm,1)) * 100, 0)
-        END AS 相差百分比
+        END AS 相差百分比,
+
+        -- 新增：房型金额 vs CRS金额 的差异
+        ROUND(ISNULL(rt.rm,0) - ISNULL(crs.rm,0), 2) AS 房型金额差,
+        CASE 
+            WHEN ISNULL(crs.rm,0) = 0 THEN NULL
+            ELSE ROUND(((ISNULL(rt.rm,0) - ISNULL(crs.rm,0)) / ISNULL(crs.rm,1)) * 100, 0)
+        END AS 房型相差百分比
     FROM #BIData bi
     LEFT JOIN #CRSData crs 
         ON bi.hotelid = crs.hotelid 
        AND bi.bdate = crs.bdate
+    LEFT JOIN #BIDataRoomType rt
+        ON bi.hotelid = rt.hotelid
+       AND bi.bdate = rt.bdate
     INNER JOIN [CrsStar ].dbo.StarHotelBaseInfo c
         ON bi.hotelid = c.HotelCode
     WHERE 
@@ -215,14 +249,22 @@ END
       PropertyType: '合计',
       bdate: '合计',
       BI间夜: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.BI间夜) || 0), 0),
+      BI房型间夜: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.BI房型间夜) || 0), 0),
       CRS间夜: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.CRS间夜) || 0), 0),
       BI金额: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.BI金额) || 0), 0),
+      BI房型金额: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.BI房型金额) || 0), 0),
       CRS金额: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.CRS金额) || 0), 0),
       金额差: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.金额差) || 0), 0),
       相差百分比: (() => {
         const totalBI = formattedResults.reduce((sum: number, row: any) => sum + (Number(row.BI金额) || 0), 0);
         const totalDiff = formattedResults.reduce((sum: number, row: any) => sum + (Number(row.金额差) || 0), 0);
         return totalBI > 0 ? Math.round((totalDiff / totalBI) * 100) : null;
+      })(),
+      房型金额差: formattedResults.reduce((sum: number, row: any) => sum + (Number(row.房型金额差) || 0), 0),
+      房型相差百分比: (() => {
+        const totalCRS = formattedResults.reduce((sum: number, row: any) => sum + (Number(row.CRS金额) || 0), 0);
+        const totalRoomTypeDiff = formattedResults.reduce((sum: number, row: any) => sum + (Number(row.房型金额差) || 0), 0);
+        return totalCRS > 0 ? Math.round((totalRoomTypeDiff / totalCRS) * 100) : null;
       })(),
       __type: 'total',
     };

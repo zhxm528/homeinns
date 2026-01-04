@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.booking.mapper.GuestMapper">
+    
+    <resultMap id="GuestResultMap" type="com.zai.booking.entity.Guest">
+        <id column="guest_id" property="guestId"/>
+        <result column="guest_name" property="guestName"/>
+        <result column="guest_ename" property="guestEname"/>
+        <result column="first_name" property="firstName"/>
+        <result column="last_name" property="lastName"/>
+        <result column="id_type" property="idType"/>
+        <result column="id_number" property="idNumber"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="address" property="address"/>
+        <result column="special_requests" property="specialRequests"/>
+        <result column="member_level" property="memberLevel"/>
+        <result column="member_card_no" property="memberCardNo"/>
+        <result column="member_type" property="memberType"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        guest_id, guest_name, guest_ename, first_name, last_name, id_type, id_number,
+        phone, email, address, special_requests, member_level, member_card_no, member_type
+    </sql>
+
+    <insert id="insert" parameterType="com.zai.booking.entity.Guest">
+        INSERT INTO guests (
+            <include refid="Base_Column_List"/>
+        ) VALUES (
+            #{guestId}, #{guestName}, #{guestEname}, #{firstName}, #{lastName}, #{idType}, #{idNumber},
+            #{phone}, #{email}, #{address}, #{specialRequests}, #{memberLevel}, #{memberCardNo}, #{memberType}
+        )
+    </insert>
+
+    <delete id="deleteByGuestId" parameterType="java.lang.String">
+        DELETE FROM guests WHERE guest_id = #{guestId}
+    </delete>
+
+    <update id="update" parameterType="com.zai.booking.entity.Guest">
+        UPDATE guests
+        <set>
+            <if test="guestName != null">guest_name = #{guestName},</if>
+            <if test="guestEname != null">guest_ename = #{guestEname},</if>
+            <if test="firstName != null">first_name = #{firstName},</if>
+            <if test="lastName != null">last_name = #{lastName},</if>
+            <if test="idType != null">id_type = #{idType},</if>
+            <if test="idNumber != null">id_number = #{idNumber},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="specialRequests != null">special_requests = #{specialRequests},</if>
+            <if test="memberLevel != null">member_level = #{memberLevel},</if>
+            <if test="memberCardNo != null">member_card_no = #{memberCardNo},</if>
+            <if test="memberType != null">member_type = #{memberType},</if>
+        </set>
+        WHERE guest_id = #{guestId}
+    </update>
+
+    <select id="selectByGuestId" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE guest_id = #{guestId}
+    </select>
+
+    <select id="selectByGuestName" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE guest_name LIKE CONCAT('%', #{guestName}, '%')
+        ORDER BY guest_name
+    </select>
+
+    <select id="selectByGuestEname" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE guest_ename LIKE CONCAT('%', #{guestEname}, '%')
+        ORDER BY guest_ename
+    </select>
+
+    <select id="selectByPhone" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE phone = #{phone}
+    </select>
+
+    <select id="selectByEmail" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE email = #{email}
+    </select>
+
+    <select id="selectByIdNumber" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE id_number = #{idNumber}
+    </select>
+
+    <select id="selectByMemberCardNo" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE member_card_no = #{memberCardNo}
+        ORDER BY guest_name
+    </select>
+
+    <select id="selectByMemberType" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        WHERE member_type = #{memberType}
+        ORDER BY guest_name
+    </select>
+
+    <select id="selectByCondition" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        <where>
+            <if test="guestName != null and guestName != ''">
+                AND guest_name LIKE CONCAT('%', #{guestName}, '%')
+            </if>
+            <if test="guestEname != null and guestEname != ''">
+                AND guest_ename LIKE CONCAT('%', #{guestEname}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone = #{phone}
+            </if>
+            <if test="email != null and email != ''">
+                AND email = #{email}
+            </if>
+            <if test="memberType != null and memberType != ''">
+                AND member_type = #{memberType}
+            </if>
+        </where>
+        ORDER BY guest_name
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="selectAll" resultMap="GuestResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM guests
+        ORDER BY guest_name
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM guests
+        <where>
+            <if test="guestName != null and guestName != ''">
+                AND guest_name LIKE CONCAT('%', #{guestName}, '%')
+            </if>
+            <if test="guestEname != null and guestEname != ''">
+                AND guest_ename LIKE CONCAT('%', #{guestEname}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone = #{phone}
+            </if>
+            <if test="email != null and email != ''">
+                AND email = #{email}
+            </if>
+            <if test="memberType != null and memberType != ''">
+                AND member_type = #{memberType}
+            </if>
+        </where>
+    </select>
+
+</mapper> 

@@ -526,6 +526,9 @@ export class HotelDAO {
     hotelTypes?: string[];
     propertyTypes?: string[];
     pmsTypes?: string[];
+    areas?: string[];
+    urbanAreas?: string[];
+    cities?: string[];
     status?: number;
     isDelete?: number;
   }): Promise<HotelBaseInfo[]> {
@@ -542,10 +545,17 @@ export class HotelDAO {
       params.push(...conditions.groupCodes);
     }
 
-    // 酒店编码或名称模糊查询 - 同时搜索酒店编号和酒店名称
+    // 酒店编码模糊查询
     if (conditions.hotelCode) {
-      whereClause += ` AND (HotelCode LIKE @param${paramIndex} OR HotelName LIKE @param${paramIndex})`;
+      whereClause += ` AND HotelCode LIKE @param${paramIndex}`;
       params.push(`%${conditions.hotelCode}%`);
+      paramIndex++;
+    }
+
+    // 酒店名称模糊查询
+    if (conditions.hotelName) {
+      whereClause += ` AND HotelName LIKE @param${paramIndex}`;
+      params.push(`%${conditions.hotelName}%`);
       paramIndex++;
     }
 
@@ -582,6 +592,27 @@ export class HotelDAO {
       whereClause += ` AND IsDelete = @param${paramIndex}`;
       params.push(conditions.isDelete);
       paramIndex++;
+    }
+
+    // 大区多选
+    if (conditions.areas && conditions.areas.length > 0) {
+      const placeholders = conditions.areas.map(() => `@param${paramIndex++}`).join(',');
+      whereClause += ` AND Area IN (${placeholders})`;
+      params.push(...conditions.areas);
+    }
+
+    // 城区多选
+    if (conditions.urbanAreas && conditions.urbanAreas.length > 0) {
+      const placeholders = conditions.urbanAreas.map(() => `@param${paramIndex++}`).join(',');
+      whereClause += ` AND UrbanArea IN (${placeholders})`;
+      params.push(...conditions.urbanAreas);
+    }
+
+    // 城市多选
+    if (conditions.cities && conditions.cities.length > 0) {
+      const placeholders = conditions.cities.map(() => `@param${paramIndex++}`).join(',');
+      whereClause += ` AND MDMCity IN (${placeholders})`;
+      params.push(...conditions.cities);
     }
 
     const query = `

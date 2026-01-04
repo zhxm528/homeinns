@@ -1,0 +1,134 @@
+# 应用名称和端口配置
+spring:
+  application:
+    name: zai  # 应用名称，用于注册、日志或服务发现
+  main:
+    allow-bean-definition-overriding: true  # 允许 bean 定义覆盖，解决 objectMapper 冲突
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver  # JDBC 驱动
+    url: jdbc:mysql://47.120.18.202:3306/zai?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai  # 数据库连接 URL
+    username: zhj  # 数据库用户名
+    password: 12qw!@QW  # 数据库密码（应放入加密配置中）
+    hikari:
+      connection-timeout: 30000  # 获取连接的最大等待时间（毫秒）
+      maximum-pool-size: 10  # 最大连接数
+      minimum-idle: 5  # 最小空闲连接数
+      idle-timeout: 300000  # 空闲连接的超时时间（毫秒）
+      max-lifetime: 1200000  # 一个连接的最大生命周期（毫秒）
+      auto-commit: true  # 是否自动提交事务
+      pool-name: HikariCP  # 连接池名称
+      connection-test-query: SELECT 1  # 测试连接是否有效的 SQL
+      validation-timeout: 5000  # 连接验证的超时时间（毫秒）
+  transaction:
+    manager:
+      default-timeout: 30  # 默认事务超时时间（秒）
+      rollback-on-commit-failure: true  # 提交失败时是否回滚事务
+      default-isolation-level: 2  # 默认事务隔离级别（2 表示 READ_COMMITTED）
+  mvc:
+    cors:
+      allowed-origins: http://localhost:5173  # 允许跨域访问的来源地址
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS  # 允许的 HTTP 方法
+      allowed-headers: "*"  # 允许的请求头
+      allow-credentials: true  # 是否允许携带 Cookie 等凭证
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss  # 日期时间格式
+    time-zone: Asia/Shanghai  # 时区设置
+    serialization:
+      write-dates-as-timestamps: false  # 不将日期写为时间戳
+    deserialization:
+      fail-on-unknown-properties: false  # 忽略未知属性
+  jvm:
+    arguments: -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  # JVM 启动参数，确保字符编码为 UTF-8
+
+server:
+  port: 8081  # 服务端口号
+
+# MyBatis 配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml  # Mapper XML 文件路径
+  type-aliases-package: com.zai.user.entity,com.zai.chain.entity,com.zai.channel.entity,com.zai.hotel.entity  # 实体类别名包
+  configuration:
+    map-underscore-to-camel-case: true  # 自动将数据库字段的下划线映射为驼峰命名
+    default-fetch-size: 100  # 查询结果每批获取行数
+    default-statement-timeout: 30  # SQL 执行超时时间（秒）
+    cache-enabled: false  # 是否开启二级缓存
+    lazy-loading-enabled: true  # 是否启用懒加载
+    aggressive-lazy-loading: false  # 是否强制所有懒加载属性加载
+    multiple-result-sets-enabled: true  # 是否允许返回多个结果集
+    use-column-label: true  # 是否使用列别名
+    use-generated-keys: true  # 是否使用 JDBC 自动生成主键
+    auto-mapping-behavior: PARTIAL  # 自动映射级别
+    default-executor-type: SIMPLE  # 默认执行器类型
+    default-statement-type: PREPARED  # 使用预编译语句
+    safe-row-bounds-enabled: false  # 是否启用安全的 RowBounds
+    safe-result-handler-enabled: true  # 是否启用安全的结果处理器
+    local-cache-scope: SESSION  # 本地缓存作用域
+    jdbc-type-for-null: NULL  # NULL 值映射为 JDBC 类型
+    lazy-load-trigger-methods: equals,clone,hashCode,toString  # 触发懒加载的方法名
+    default-scripting-language: org.apache.ibatis.scripting.xmltags.XMLLanguageDriver  # 默认脚本语言驱动
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler  # 枚举类型处理器
+    call-setters-on-nulls: true  # 是否对 null 值调用 setter 方法
+    return-instance-for-empty-row: false  # 空行是否返回对象实例
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 日志实现类，控制台输出
+
+# 日志配置
+logging:
+  level:
+    root: INFO  # 根日志级别
+    com.zai: DEBUG  # 应用包日志级别（以下略）
+    com.zai.api.homeinns.GETChannelRmType.controller.GetHotelInfoController: DEBUG  # 应用包日志级别（以下略）
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"  # 控制台日志格式
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"  # 文件日志格式
+  charset:
+    console: UTF-8  # 控制台日志编码
+    file: UTF-8  # 文件日志编码
+  file:
+    name: logs/zai.log  # 日志文件路径
+    max-size: 10MB  # 每个日志文件最大大小
+    max-history: 10  # 日志文件最多保留历史数量
+  console:
+    enabled: true  # 是否启用控制台输出
+
+# HotelBeds 第三方 API 配置
+hotelbeds:
+  account:
+    name: YL  # 账户名称
+  api:
+    key: aca4d9dc837b059f78fd627f9a303d00  # API Key
+    secret: 3bc8daff42  # API 密钥
+    base-url: https://api.hotelbeds.com/  # 接口基础 URL
+  supplier:
+    id: 15343  # 供应商 ID
+
+# 邮件接收人配置
+email:
+  recipient: jianzhou@homeinns.com  # 默认收件人
+
+# JWT 配置
+jwt:
+  secret: f4b9e7c2a8d1f3e9b6c7a8d9e0f1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9  # 用于生成 JWT 的密钥（应加密存储）
+  expiration: 86400000  # token 有效期（毫秒，等于 24 小时）
+
+# 如家 API 配置
+#MTUANTCM15319296
+homeinns:
+  api:
+    base-url: http://ota.homeinns.com  # API 基础 URL
+    terminal:
+      license: TravelNo250418  # 终端许可证
+      seq: 1  # 序列号
+      oprid: 1  # 操作人 ID
+
+# CSV 文件导入配置
+csv:
+  file:
+    path: D:\\bi_ttl_202505271721_0_300000.csv  # CSV 文件路径
+    offset: 1000  # 从第几行开始读取（跳过头部）
+
+# POI Excel 安全配置
+poi:
+  security:
+    min-inflate-ratio: 0.0001  # 最小压缩比阈值，防止 Zip Bomb 攻击误判（调整为更小的值）
+    max-file-size: 10485760   # 最大文件大小限制（10MB）
+    allowed-file-types: xlsx,xls  # 允许的文件类型

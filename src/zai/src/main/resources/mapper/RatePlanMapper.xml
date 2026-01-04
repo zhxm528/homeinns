@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zai.rateplan.mapper.RatePlanMapper">
+    <resultMap id="BaseResultMap" type="com.zai.rateplan.entity.RatePlan">
+        <id column="rate_plan_id" property="ratePlanId" jdbcType="VARCHAR"/>
+        <result column="chain_id" property="chainId" jdbcType="VARCHAR"/>
+        <result column="hotel_id" property="hotelId" jdbcType="VARCHAR"/>
+        <result column="room_type_id" property="roomTypeId" jdbcType="VARCHAR"/>
+        <result column="rate_code_id" property="rateCodeId" jdbcType="VARCHAR"/>
+        <result column="room_type" property="roomType" jdbcType="VARCHAR"/>
+        <result column="rate_code" property="rateCode" jdbcType="VARCHAR"/>
+        <result column="rate_plan_name" property="ratePlanName" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="final_status" property="finalStatus" jdbcType="INTEGER"/>
+        <result column="final_inventory" property="finalInventory" jdbcType="INTEGER"/>
+        <result column="final_price" property="finalPrice" jdbcType="DECIMAL"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        rate_plan_id, chain_id, hotel_id, room_type_id, rate_code_id, room_type, rate_code, rate_plan_name, description,
+        final_status, final_inventory, final_price, created_at
+    </sql>
+
+    <select id="selectByChainAndHotel" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM rate_plans
+        WHERE chain_id = #{chainId}
+          AND hotel_id = #{hotelId}
+        ORDER BY rate_plan_name ASC
+    </select>
+
+    <select id="selectByChainAndHotelAndRateCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM rate_plans
+        WHERE chain_id = #{chainId}
+          AND hotel_id = #{hotelId}
+          AND rate_code_id = #{rateCodeId}
+        ORDER BY rate_plan_name ASC
+    </select>
+
+    <select id="selectByHotelId" resultType="com.zai.rateplan.entity.RatePlan">
+        SELECT 
+            rp.rate_plan_id,
+            rp.chain_id,
+            rp.hotel_id,
+            rp.room_type_id,
+            rp.rate_code_id,
+            rp.room_type,
+            rp.rate_code,
+            rp.rate_plan_name,
+            rp.description,
+            rp.final_status,
+            rp.final_inventory,
+            rp.final_price,
+            rp.created_at,
+            rt.room_type_name,
+            rc.rate_code_name
+        FROM rate_plans rp
+        LEFT JOIN room_types rt ON rp.room_type_id = rt.room_type_id
+        LEFT JOIN rate_codes rc ON rp.rate_code_id = rc.rate_code_id
+        WHERE rp.hotel_id = #{hotelId}
+    </select>
+
+    <insert id="insert" parameterType="com.zai.rateplan.entity.RatePlan">
+        INSERT INTO rate_plans (
+            rate_plan_id, chain_id, hotel_id, room_type_id, rate_code_id,room_type,rate_code,
+            rate_plan_name, description, final_status, final_inventory, final_price, created_at, updated_at
+        ) VALUES (
+            #{ratePlanId}, #{chainId}, #{hotelId}, #{roomTypeId}, #{rateCodeId},
+            #{roomType}, #{rateCode}, #{ratePlanName}, #{description}, #{finalStatus}, #{finalInventory}, #{finalPrice},
+            NOW(), NOW()
+        )
+    </insert>
+
+    <delete id="deleteByRatePlanId">
+        DELETE FROM rate_plans WHERE rate_plan_id = #{ratePlanId}
+    </delete>
+
+    <delete id="deleteByUnique">
+        DELETE FROM rate_plans
+        WHERE chain_id = #{chainId}
+          AND hotel_id = #{hotelId}
+          AND room_type_id = #{roomTypeId}
+          AND rate_code_id = #{rateCodeId}
+    </delete>
+
+    <delete id="deleteByChainAndHotel">
+        DELETE FROM zai.rate_plans
+        WHERE chain_id = #{chainId}
+        AND hotel_id = #{hotelId}
+        AND rate_code_id = #{rateCodeId}
+    </delete>
+
+    <select id="selectByHotelAndRateCodeAndRoomType" resultMap="BaseResultMap">
+        SELECT 
+            rp.rate_plan_id, rp.chain_id, rp.hotel_id, rp.room_type_id, rp.rate_code_id,
+            rp.room_type, rp.rate_code, rt.room_type_name, rc.rate_code_name,
+            rp.rate_plan_name, rp.description, rp.final_status, rp.final_inventory,
+            rp.final_price, rp.created_at, rp.updated_at,
+            rc.market_code, rc.channel_id, rc.minlos, rc.maxlos,
+            rc.minadv, rc.maxadv, rc.valid_from, rc.valid_to, rc.stay_start_date,
+            rc.stay_end_date, rc.booking_start_date, rc.booking_end_date,
+            rc.limit_start_time, rc.limit_end_time, rc.limit_avail_weeks,
+            rc.price_modifier, rc.is_percentage, rc.reservation_type,
+            rc.cancellation_type, rc.latest_cancellation_days,
+            rc.latest_cancellation_time, rc.cancellable_after_booking,
+            rc.order_retention_time, rc.price_rule_type, rc.parent_rate_code_id
+        FROM rate_plans rp
+        LEFT JOIN room_types rt ON rp.room_type_id = rt.room_type_id
+        LEFT JOIN rate_codes rc ON rp.rate_code_id = rc.rate_code_id
+        WHERE rp.hotel_id = #{hotelId}
+        <if test="rateCodeId != null and rateCodeId != ''">
+            AND rp.rate_code_id = #{rateCodeId}
+        </if>
+        <if test="roomTypeId != null and roomTypeId != ''">
+            AND rp.room_type_id = #{roomTypeId}
+        </if>
+        ORDER BY rp.created_at DESC
+    </select>
+
+    <select id="calendarByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM rate_plans
+        WHERE hotel_id = #{hotelId}
+        ORDER BY rate_code ASC
+    </select>
+
+    <select id="selectCalendarByHotelIdAndRoomTypeCodeAndRateCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM rate_plans
+        WHERE hotel_id = #{hotelId} 
+        AND room_type = #{roomTypeCode} 
+        AND rate_code = #{rateCode}
+        ORDER BY rate_code ASC
+    </select>
+</mapper> 
