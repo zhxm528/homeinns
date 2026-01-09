@@ -39,7 +39,11 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex">
+        {/* 侧边栏占位，与页面体侧边栏宽度一致 */}
+        <div className="w-64 flex-shrink-0"></div>
+        {/* 内容区域，与页面体内容区域对齐 */}
+        <div className="flex-1 px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Logo and Description */}
           <div className="lg:col-span-1">
@@ -164,6 +168,7 @@ export default function Footer() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </footer>
