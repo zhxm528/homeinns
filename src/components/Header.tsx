@@ -10,6 +10,7 @@ export default function Header() {
     { name: "首页", href: "/" },
     { name: "价格", href: "/price" },
     { name: "产品线", href: "/subsystem" },
+    { name: "CDP", href: "/cdp" },
     { name: "关于", href: "/about" },
   ];
 

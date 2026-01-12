@@ -12,23 +12,24 @@ interface MenuItem {
 
 const menuData: MenuItem[] = [
   {
-    name: "酒店管理",
-    children: [
-      {
-        name: "基础信息",
-        href: "/crs/hotel",
-      },
-      {
-        name: "价量态",
-      },
-      {
-        name: "订单管理",
-      },
-    ],
+    name: "会员体系",
+    href: "/cdp/lm/membership-system",
+  },
+  {
+    name: "积分与权益",
+    href: "/cdp/lm/points-benefits",
+  },
+  {
+    name: "会员运营",
+    href: "/cdp/lm/membership-operation",
+  },
+  {
+    name: "忠诚度分析",
+    href: "/cdp/lm/loyalty-analysis",
   },
 ];
 
-export default function Sidebar() {
+export default function LMSidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -110,6 +111,11 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto flex-shrink-0">
       <div className="p-4">
+        <div className="mb-4">
+          <Link href="/cdp/lm" className="text-lg font-semibold text-gray-900 hover:text-blue-600">
+            客户忠诚度管理
+          </Link>
+        </div>
         <ul className="space-y-1">
           {menuData.map((item) => renderMenuItem(item))}
         </ul>
@@ -117,4 +123,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-

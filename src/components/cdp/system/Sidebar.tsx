@@ -12,23 +12,24 @@ interface MenuItem {
 
 const menuData: MenuItem[] = [
   {
-    name: "酒店管理",
-    children: [
-      {
-        name: "基础信息",
-        href: "/crs/hotel",
-      },
-      {
-        name: "价量态",
-      },
-      {
-        name: "订单管理",
-      },
-    ],
+    name: "组织与权限",
+    href: "/cdp/system/organization-permission",
+  },
+  {
+    name: "系统配置",
+    href: "/cdp/system/system-config",
+  },
+  {
+    name: "安全与合规",
+    href: "/cdp/system/security-compliance",
+  },
+  {
+    name: "运维监控",
+    href: "/cdp/system/operation-monitor",
   },
 ];
 
-export default function Sidebar() {
+export default function SystemSidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -110,6 +111,11 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto flex-shrink-0">
       <div className="p-4">
+        <div className="mb-4">
+          <Link href="/cdp/system" className="text-lg font-semibold text-gray-900 hover:text-blue-600">
+            系统管理与治理
+          </Link>
+        </div>
         <ul className="space-y-1">
           {menuData.map((item) => renderMenuItem(item))}
         </ul>
@@ -117,4 +123,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-

@@ -12,23 +12,32 @@ interface MenuItem {
 
 const menuData: MenuItem[] = [
   {
-    name: "酒店管理",
-    children: [
-      {
-        name: "基础信息",
-        href: "/crs/hotel",
-      },
-      {
-        name: "价量态",
-      },
-      {
-        name: "订单管理",
-      },
-    ],
+    name: "用户分析",
+    href: "/cdp/fa/user-analysis",
+  },
+  {
+    name: "产品分析",
+    href: "/cdp/fa/product-analysis",
+  },
+  {
+    name: "营销分析",
+    href: "/cdp/fa/marketing-analysis",
+  },
+  {
+    name: "经营分析",
+    href: "/cdp/fa/business-analysis",
+  },
+  {
+    name: "场景分析",
+    href: "/cdp/fa/scenario-analysis",
+  },
+  {
+    name: "智能分析",
+    href: "/cdp/fa/intelligent-analysis",
   },
 ];
 
-export default function Sidebar() {
+export default function FASidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -110,6 +119,11 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto flex-shrink-0">
       <div className="p-4">
+        <div className="mb-4">
+          <Link href="/cdp/fa" className="text-lg font-semibold text-gray-900 hover:text-blue-600">
+            融合分析平台
+          </Link>
+        </div>
         <ul className="space-y-1">
           {menuData.map((item) => renderMenuItem(item))}
         </ul>
@@ -117,4 +131,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
