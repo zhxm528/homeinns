@@ -8,10 +8,9 @@ export default function Header() {
 
   const menuItems = [
     { name: "首页", href: "/" },
-    { name: "价格", href: "/price" },
-    { name: "产品线", href: "/subsystem" },
-    { name: "CDP", href: "/cdp" },
-    { name: "关于", href: "/about" },
+    { name: "中央预订", href: "/crs/hotel" },
+    { name: "辅助工具", href: "/subsystem" },
+    { name: "数据平台", href: "/cdp" },
   ];
 
   return (
