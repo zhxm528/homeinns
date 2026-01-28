@@ -1,0 +1,10 @@
+{
+  "name": "shiji-token-sdk",
+  "version": "0.1.0",
+  "description": "Node.js SDK for Shiji Platform token auth and API access",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  }
+}

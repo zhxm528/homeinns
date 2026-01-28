@@ -1,0 +1,874 @@
+﻿@{
+    ViewData["Title"] = "ActualOperationTaking";
+    Layout = "~/Views/Shared/_LayoutM.cshtml";
+}
+<link rel="stylesheet" type="text/css" href="~/WebUI/css/element.css">
+<style>
+    [v-cloak] { display: none; }
+
+    .section { margin: 0 18px; padding: 24px 24px 0 24px; -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); background: #fff; border-radius: 8px; }
+    .section .navTitle { font-size: 20px; font-weight: 500; color: #303133; padding-bottom: 10px; }
+    .el-form--inline .el-form-item { margin-bottom: 10px; }
+    thead { height: 25px; line-height: 25px; }
+
+    .el-table .cell { padding: 0 5px !important; font-weight: normal; }
+
+    .el-table th { padding: 15px 0 !important; background: #847caa !important; color: #fff !important; }
+
+    /*     .el-table__fixed { height: 682px !important }
+
+            .el-table__fixed-body-wrapper { height: 620px !important; } */
+
+    .backBtn { margin-top: 16px 16px; }
+
+    .cardContent { margin: 10px 20px 0 20px }
+    .cardList { display: flex; align-items: center; }
+    .cardItem { flex: 1; background: #fff; margin-right: 10px; -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); border-radius: 8px; }
+
+    .cardItem:nth-child(3) { margin-right: 0; }
+
+    .cardTitle { display: flex; align-items: center; height: 56px; padding-left: 20px; font-size: 16px; border-bottom: 1px solid #ebeef5; }
+    .charts { height: 268px; }
+
+    .tableBox { margin: 18px; -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.06); background: #fff; border-radius: 8px; }
+
+    .tableBox .title { padding-left: 24px; height: 56px; line-height: 56px; border-bottom: 1px solid #ebeef5; }
+
+    .el-table__fixed-body-wrapper { height: 372px !important; }
+
+    .el-tag__close { display: none }
+</style>
+<div id="app">
+    <div class="section">
+        <div class="navTitle"></div>
+        <el-form label-position="right" :inline="true" class="demo-form-inline" style="text-align:right">
+            <el-form-item label="">
+                <el-date-picker
+                  v-model="formSearch.Date1"
+                  type="date"
+                  placeholder="选择日期"
+                  value-format="yyyy-MM-dd"
+                  style="width:150px;"
+                  :clearable="false"
+                  :picker-options="singleDateOptions"
+                 @@keydown.native.prevent
+                 @@paste.native.prevent
+                 @@change="DateChange1"
+                >
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="">
+                <el-date-picker
+                  v-model="formSearch.Date2"
+                  type="date"
+                  placeholder="选择日期"
+                  value-format="yyyy-MM-dd"
+                  style="width:150px;"
+                  :clearable="false"
+                  :picker-options="singleDateOptions"
+                  @@keydown.native.prevent
+                 @@paste.native.prevent
+                 @@change="DateChange2"
+                >
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item v-if="formSearch.Date1&&formSearch.Date2">
+                <el-date-picker
+                  v-model="Date"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  value-format="yyyy-MM-dd"
+                  :picker-options="rangePickerOptions" 
+                  :clearable="false"
+                  @@keydown.native.prevent
+                 @@paste.native.prevent
+                >
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="">
+                <el-select multiple
+                           @@change="changeBrand"
+                           collapse-tags style="width:140px;" v-model="formSearch.BrandCode" placeholder="管理公司">
+                    <el-option v-for="item in brandData"
+                               :disabled="formSearch.BrandCode.includes(item.GroupCode)&&formSearch.BrandCode.length===1"
+                               :key="item.GroupCode"
+                               :label="item.GroupName"
+                               :value="item.GroupCode">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="">
+                <el-select multiple
+                           @@change="changeProperty"
+                           collapse-tags style="width:170px;" v-model="formSearch.PropertyType" placeholder="产权类型">
+                    <el-option v-for="item in ownershipList"
+                               :disabled="formSearch.PropertyType.includes(item.Code)&&formSearch.PropertyType.length===1"
+                               :key="item.Code"
+                               :label="item.Name"
+                               :value="item.Code">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="">
+                <el-select multiple
+                           @@change="changeManage"
+                           collapse-tags style="width:170px;" v-model="formSearch.ManageType" placeholder="管理类型">
+                    <el-option v-for="item in manageList"
+                               :disabled="formSearch.ManageType.includes(item.Code)&&formSearch.ManageType.length===1"
+                               :key="item.Name"
+                               :label="item.Name"
+                               :value="item.Code">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="">
+                <el-select @@change="changeCity" style="width:120px;" v-model="formSearch.CityCode" placeholder="城市">
+                    <el-option v-for="item in cityList"
+                               :disabled="formSearch.CityCode.includes(item.Code)&&formSearch.CityCode.length===1"
+                               :key="item.Name"
+                               :label="item.Name"
+                               :value="item.Code">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="">
+                <el-select clearable filterable style="width:200px;" v-model="HotelCode" placeholder="选择酒店">
+                    <el-option v-for="item in hotelList"
+                               :key="item.HotelCode"
+                               :label="item.HotelCode+'-'+item.HotelName"
+                               :value="item.HotelCode">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+           @*  <el-form-item label="">
+                <el-select style="width:120px;" v-model="formSearch.IncTax" placeholder="是否含税">
+                    <el-option label="不含税" :value="false"></el-option>
+                    <el-option label="含税" :value="true"></el-option>
+                </el-select>
+            </el-form-item> *@
+            <el-form-item label="">
+                <el-select @@change="changeInSoft" style="width:120px;" v-model="IncSoft" placeholder="请选择">
+                    <el-option label="不含软连" :value="false"></el-option>
+                    <el-option label="含软连" :value="true"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="">
+                <el-button size="small" type="primary" @@click="getTableList">查询</el-button>
+                <el-button size="small" @@click="resetData">重置</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+    <div class="tableBox">
+        <div style="padding:20px;">           
+             <div style="padding-bottom:20px;">{{tableDataNew?.[0]?.HotelNum}}家酒店</b></div>
+            <el-table :data="tableDataNew"
+                      height="550"
+                      border
+                      style="width: 100%"
+                      :span-method="objectSpanMethod"
+            >
+                <el-table-column  label="市场大类"  width="210" align="center" prop="CateName">                  
+                    <template slot-scope="scope">
+                        {{scope.row.CateName}}
+                    </template>
+                   
+                </el-table-column>
+                <el-table-column  label="市场细分"  width="210" align="center" prop="CodeName">    
+                 <template slot-scope="scope">
+                     <template v-if="scope.row.CodeName!=='小计'">
+                        <a style="cursor:pointer;" @@click="CodeNameClick(scope.row)">
+                            {{scope.row.CodeName}}
+                            <i :class="scope.row.isExpanded ? 'el-icon-minus' : 'el-icon-plus'" style="margin-left: 8px;color:green"></i>
+                        </a>
+                        </template>
+                        <template v-else>
+                            {{scope.row.CodeName}}
+                        </template>
+                    </template>
+                </el-table-column>
+                <el-table-column  align="center">
+                    <template #header>
+                        {{TableDate1}}查看{{ TableDate && TableDate.join('~') }}
+                    </template>
+                    <el-table-column label="间夜"  align="center" prop="RmsOcc">
+                        <template slot-scope="scope">
+                            {{scope.row.Data1.RmsOcc}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="间夜占比（%）"  align="center" prop="RmsOccPoP">
+                        <template slot-scope="scope">
+                            {{scope.row.Data1.RmsOccPoP}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="ADR（元）"  align="center" prop="RevAvg">
+                        <template slot-scope="scope">
+                            {{scope.row.Data1.RevAvg}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="客房收入（元）" prop="RevRoom" align="center">
+                        <template slot-scope="scope">
+                            {{scope.row.Data1.RevRoom}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="客房收入占比（%）" prop="RevRoomPoP" align="center">
+                         <template slot-scope="scope">
+                            {{scope.row.Data1.RevRoomPoP}}
+                        </template>
+                    </el-table-column>
+                </el-table-column>
+                <el-table-column  align="center">
+                    <template #header>
+                        {{TableDate2}}查看{{ TableDate && TableDate.join('~') }}
+                    </template>
+                    <el-table-column label="间夜"  align="center" prop="RmsOcc">
+                        <template slot-scope="scope">
+                             {{scope.row.Data2.RmsOcc}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="间夜占比（%）"  align="center" prop="RmsOccPoP">
+                        <template slot-scope="scope">
+                            {{scope.row.Data2.RmsOccPoP}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="ADR（元）" align="center" prop="RevAvg">
+                        <template slot-scope="scope">
+                            {{scope.row.Data2.RevAvg}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="客房收入（元）" align="center" prop="RevRoom">
+                        <template slot-scope="scope">
+                            {{scope.row.Data2.RevRoom}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="客房收入占比（%）" align="center" prop="RevRoomPoP">
+                        <template slot-scope="scope">
+                            {{scope.row.Data2.RevRoomPoP}}
+                        </template>
+                    </el-table-column>
+                </el-table-column>
+                <el-table-column label="差异" align="center">
+                    <el-table-column label="间夜"  align="center" prop="RmsOcc">
+                        <template slot-scope="scope">
+                             <a :style="{ color: scope.row.Data3.RmsOcc < 0 ? 'red' : '' }">{{scope.row.Data3.RmsOcc}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="占比差异（%）"  align="center" prop="RmsOccPoP">
+                        <template slot-scope="scope">
+                            <a :style="{color: Number((scope.row.Data3.RmsOccPoP || '0%').replace(/%/g, '').trim()) < 0 ? 'red' : '' }">{{scope.row.Data3.RmsOccPoP}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="ADR（元）"  align="center" prop="RevAvg">
+                        <template slot-scope="scope">
+                             <a :style="{ color: scope.row.Data3.RevAvg < 0 ? 'red' : '' }">{{scope.row.Data3.RevAvg}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="客房收入（元）"  align="center"  prop="RevRoom">
+                        <template slot-scope="scope">
+                            <a :style="{ color: scope.row.Data3.RevRoom < 0 ? 'red' : '' }"> {{scope.row.Data3.RevRoom}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="占比差异（%）" align="center" prop="RevRoomPoP">
+                        <template slot-scope="scope">
+                             <a :style="{color: Number((scope.row.Data3.RevRoomPoP || '0%').replace(/%/g, '').trim()) < 0 ? 'red' : '' }">{{scope.row.Data3.RevRoomPoP}}</a>
+                        </template>
+                    </el-table-column>
+                </el-table-column>
+            </el-table>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript" src="~/WebUI/js/echarts.js"></script>
+<script type="text/javascript" src="~/WebUI/js/vue.min.js"></script>
+<script type="text/javascript" src="~/WebUI/js/element.js"></script>
+<script type="text/javascript" src="~/WebUI/js/cro/axios.min.js"></script>
+<script>
+    let cityList = [
+        { Name: '北京', Code: '010000' },
+        { Name: '外埠', Code: '111111' }
+    ]
+    let manageList = [
+        { Code: "H004", Name: "委托管理" },
+        { Code: "H003", Name: "合资委管" },
+        { Code: "H002", Name: "特许加盟" }
+    ]
+    let ownershipList = [
+        { Name: "首旅集团 ", Code: "SLJT" },
+        { Name: "首旅置业 ", Code: "SLZY" },
+        { Name: "首酒集团 ", Code: "SJJT" },
+        { Name: "北展 ", Code: "BZ" },
+        { Name: "首副投", Code: "SFT" },
+        { Name: "非产权店 ", Code: "FCQD" }
+    ]
+    new Vue({
+        el: "#app",
+        data() {
+            const _this = this;
+            return {
+                tableDataNew: [],
+                //搜索
+                formSearch: {
+                    Date1: "",
+                    Date2: "",
+                    sDate:"",
+                    eDate:"",
+                    BrandCode: [],
+                    PropertyType: [],
+                    ManageType: [],
+                    CityCode: "",
+                    IncTax: false
+                },
+                Date:"",
+                //管理公司
+                brandData: [],
+                //管理类型
+                manageList: [
+                    { Code: "H004", Name: "委托管理" },
+                    { Code: "H003", Name: "合资委管" },
+                    { Code: "H002", Name: "特许加盟" }
+                ],
+                //城市列表
+                cityList: [
+                    { Name: '北京', Code: '010000' },
+                    { Name: '外埠', Code: '111111' }
+                ],
+                //产权类型列表
+                ownershipList: [
+                    { Name: "首旅集团 ", Code: "SLJT" },
+                    { Name: "首旅置业 ", Code: "SLZY" },
+                    { Name: "首酒集团 ", Code: "SJJT" },
+                    { Name: "北展 ", Code: "BZ" },
+                    { Name: "首副投", Code: "SFT" },
+                    { Name: "非产权店 ", Code: "FCQD" }
+                ],
+                HotelCode: '',
+                hotelList: [],
+                singleDateOptions: {
+                    disabledDate(time) {
+                        // 只能选择今天及之前的日期
+                        return time.getTime() > Date.now();
+                    }
+                },
+                changeType: 0, //0: 管理公司 1:产权类型 2:管理类型 3：城市
+                IncSoft: false, //true-含软连 false-不含软连
+                rangePickerOptions: {
+                  disabledDate: function(date) {
+                    const { Date1, Date2 } = _this.formSearch;
+                    if (!Date1 && !Date2) return false;
+
+                    const maxDate = _this.getMaxDate(Date1, Date2);
+                    if (!maxDate) return false;
+
+                    return date.getTime() < maxDate.getTime();
+                  }
+                },
+                TableDate1:"",
+                TableDate2:"",
+                TableDate:"",
+                 columnOrder: [
+                    'CateName',
+                    'CodeName',
+                    'RmsOcc',
+                    'RmsOccPoP',
+                    'RevAvg',
+                    'RevRoom',
+                    'RevRoomPoP',                   
+                ],
+                needMergeArr: ['CateName', 'CodeName'],
+                rowMergeArrs: {},
+                hangLabels: {
+                    hang1: {
+                        labels: ['市场大类', '市场细分'],
+                        subtotals: ['总计'],
+                        attr: 'CodeName'
+                    }
+                },
+                tableDataNew2:[]
+            }
+        },
+        mounted() {
+            this.formSearch.Date1=this.getToday()
+            this.formSearch.Date2=this.getYesterday()
+            this.setDefaultDate()
+            this.getChoiceBrandList()
+            this.getTableList()
+            this.getHotelList().then(res => {
+                this.HotelCode = ''
+                this.hotelList = res[0].Data
+            })
+
+        },
+        methods: {
+            //含软连切换
+            changeInSoft() {
+                this.getHotelList().then(res => {
+                    this.HotelCode = ''
+                    this.hotelList = res[0].Data
+                })
+            },
+            //重置数据
+            resetData() {
+                this.IncSoft = false
+                this.formSearch = {
+                    Date1: this.getToday(),
+                    Date2:this.getYesterday(),
+                    BrandCode: [],
+                    PropertyType: [],
+                    ManageType: [],
+                    CityCode: "",
+                    IncTax: false
+                }
+                this.setDefaultDate();
+                console.log(this.Date,"d555555")
+                this.getChoiceBrandList()
+                this.manageList = manageList
+                this.cityList = cityList
+                this.ownershipList = ownershipList
+                this.getHotelList().then(res => {
+                    this.HotelCode = ''
+                    this.hotelList = res[0].Data
+                    this.getTableList()
+                })
+
+            },
+            //报表数据
+            getTableList() {
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Loading',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                let { Date1,  Date2, BrandCode, PropertyType, ManageType, CityCode, IncTax } = this.formSearch
+                let params={
+                    Date1,
+                    Date2,
+                    IncSoft:this.IncSoft,
+                    BrandCode:BrandCode.join(),
+                    PropertyType: PropertyType.join(),
+                    ManageType:ManageType.join(),
+                    CityCode,
+                    HotelCode:this.HotelCode,
+                    IncTax,
+                    sDate:this.Date&&this.Date[0],
+                    eDate: this.Date && this.Date[1],
+                }
+                axios.get("/Report/GetOtbList",{params}).then(res => {
+                    loading.close();
+                    if (res.data.Code == 0) {
+                        this.tableDataNew = res.data.Data.map(dd=>{
+                            return{
+                                ...dd,
+                                 isExpanded: false,
+                            }
+                        })
+                        this.TableDate1=this.formSearch.Date1
+                        this.TableDate2=this.formSearch.Date2
+                        this.TableDate=this.Date
+                        this.rowMergeArrs = this.rowMergeHandle(this.needMergeArr, this.tableDataNew)
+                    }
+                })
+            },
+            //报表展开数据
+            openTableList(row) {
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Loading',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                let { Date1,  Date2, BrandCode, PropertyType, ManageType, CityCode, IncTax } = this.formSearch
+                let params={
+                    Date1,
+                    Date2,
+                    IncSoft:this.IncSoft,
+                    BrandCode:BrandCode.join(),
+                    PropertyType: PropertyType.join(),
+                    ManageType:ManageType.join(),
+                    CityCode,
+                    HotelCode:this.HotelCode,
+                    IncTax,
+                    sDate:this.Date&&this.Date[0],
+                    eDate: this.Date && this.Date[1],
+                    MarketCode:row.Code
+                }
+                axios.get("/Report/GetOtbList",{params}).then(res => {
+                    loading.close();
+                    if (res.data.Code == 0) {
+                        this.tableDataNew2 = res.data.Data
+                          if (this.tableDataNew2 && this.tableDataNew2.length > 0) {
+                              // 找到点击行在tableDataNew中的索引
+                              const clickRowIndex = this.tableDataNew.findIndex(item => item.Code === row.Code);
+
+                              if (clickRowIndex !== -1) {
+                                  // 标记子行（可选，用于合并单元格时区分父子行）
+                                  const childRows = this.tableDataNew2.map(item => ({
+                                      ...item,
+                                      isChildRow: true, // 标记为子行
+                                      parentCode: row.Code, // 关联父行Code
+                                      isExpanded:false
+                                  }));
+
+                                  // 将子行插入到点击行的下一位
+                                  this.tableDataNew.splice(clickRowIndex + 1, 0, ...childRows);
+
+                                  // 重新计算合并单元格配置（保持表格合并效果）
+                                  this.rowMergeArrs = this.rowMergeHandle(this.needMergeArr, this.tableDataNew);
+                              }
+                          }
+                    }
+                })
+            },
+            //获取管理公司
+            getChoiceBrandList() {
+                axios.post(`/ChoiceHotel/ChoiceBrandList`).then(res => {
+                    this.brandData = res.data.ChoiceHotelList
+                })
+            },
+            //获取酒店列表
+            getHotelList() {
+                return new Promise((resolve, reject) => {
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Loading',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    let { BrandCode, PropertyType, ManageType, CityCode } = JSON.parse(JSON.stringify(this.formSearch))
+                    console.log(this.changeType, 'changeType')
+                    let url1 = `IncSoft=${this.IncSoft}&BrandCode=${BrandCode}&PropertyType=${PropertyType}&ManageType=${ManageType}&CityCode=${CityCode}`
+                    const promise1 = this.GetStarHotelForRerprot(url1)
+                    const promise2 = this.GetStarHotelForSelect(url1)
+                    Promise.all([promise1, promise2]).then(res => {
+                        loading.close();
+                        resolve(res)
+                    })
+                })
+            },
+            //酒店数据
+            GetStarHotelForRerprot(url) {
+                return new Promise((resolve, reject) => {
+                    axios.get(`/Report/GetStarHotelForRerprot?${url}`).then(res => {
+                        resolve(res.data)
+                    })
+                })
+            },
+            //查询条件下拉框数据
+            GetStarHotelForSelect(url) {
+                return new Promise((resolve, reject) => {
+                    axios.get(`/Report/GetStarHotelForSelect?${url}`).then(res => {
+                        resolve(res.data)
+                    })
+                })
+            },
+            //获取当天
+            getToday() {
+                const date = new Date(); // 直接获取当前日期，不再减去一天
+                const y = date.getFullYear(); // 年
+                const m = (date.getMonth() + 1).toString().padStart(2, '0'); // 月（补零）
+                const d = date.getDate().toString().padStart(2, '0'); // 日（补零）
+                return `${y}-${m}-${d}`;
+            },
+            //获取昨天
+            getYesterday() {
+                const date = new Date();
+                date.setTime(date.getTime() - 24 * 60 * 60 * 1000); // 减去一天
+                const y = date.getFullYear();
+                const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                const d = date.getDate().toString().padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            },
+
+            //改变管理公司
+            changeBrand() {
+                this.changeType = 0
+                this.initHotelData()
+            },
+            //改变产权类型
+            changeProperty() {
+                this.changeType = 1
+                this.initHotelData()
+            },
+            //改变管理类型
+            changeManage() {
+                this.changeType = 2
+                this.initHotelData()
+            },
+            //改变城市
+            changeCity() {
+                this.changeType = 3
+                this.initHotelData()
+            },
+            //查询条件联动
+            initSearchData(res) {
+                switch (this.changeType) {
+                    case 0:
+                        this.manageList = res.ManageTypes
+                        this.ownershipList = res.PropertyTypes
+                        this.cityList = res.CityCodes
+                        this.formSearch.PropertyType = this.ownershipList.reduce((acc, cur) => {
+                            if (this.formSearch.PropertyType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        this.formSearch.ManageType = this.manageList.reduce((acc, cur) => {
+                            if (this.formSearch.ManageType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        break;
+                    case 1:
+                        this.brandData = res.BrandCodes.reduce((acc, cur) => {
+                            return acc = [...acc, { GroupName: cur.Name, GroupCode: cur.Code }]
+                        }, [])
+                        this.manageList = res.ManageTypes
+                        this.cityList = res.CityCodes
+                        this.formSearch.BrandCode = this.brandData.reduce((acc, cur) => {
+                            if (this.formSearch.BrandCode.includes(cur.GroupCode)) {
+                                acc = [...acc, cur.GroupCode]
+                            }
+                            return acc
+                        }, [])
+                        this.formSearch.ManageType = this.manageList.reduce((acc, cur) => {
+                            if (this.formSearch.ManageType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        break;
+                    case 2:
+                        this.brandData = res.BrandCodes.reduce((acc, cur) => {
+                            return acc = [...acc, { GroupName: cur.Name, GroupCode: cur.Code }]
+                        }, [])
+                        this.ownershipList = res.PropertyTypes
+                        this.cityList = res.CityCodes
+                        this.formSearch.BrandCode = this.brandData.reduce((acc, cur) => {
+                            if (this.formSearch.BrandCode.includes(cur.GroupCode)) {
+                                acc = [...acc, cur.GroupCode]
+                            }
+                            return acc
+                        }, [])
+                        this.formSearch.PropertyType = this.ownershipList.reduce((acc, cur) => {
+                            if (this.formSearch.PropertyType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        break;
+                    case 3:
+                        this.brandData = res.BrandCodes.reduce((acc, cur) => {
+                            return acc = [...acc, { GroupName: cur.Name, GroupCode: cur.Code }]
+                        }, [])
+                        this.manageList = res.ManageTypes
+                        this.ownershipList = res.PropertyTypes
+                        this.formSearch.BrandCode = this.brandData.reduce((acc, cur) => {
+                            if (this.formSearch.BrandCode.includes(cur.GroupCode)) {
+                                acc = [...acc, cur.GroupCode]
+                            }
+                            return acc
+                        }, [])
+                        this.formSearch.PropertyType = this.ownershipList.reduce((acc, cur) => {
+                            if (this.formSearch.PropertyType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        this.formSearch.PropertyType = this.ownershipList.reduce((acc, cur) => {
+                            if (this.formSearch.PropertyType.includes(cur.Code)) {
+                                acc = [...acc, cur.Code]
+                            }
+                            return acc
+                        }, [])
+                        break;
+                }
+            },
+            initHotelData() {
+                this.getHotelList().then(res => {
+                    this.HotelCode = ''
+                    this.hotelList = res[0].Data
+                    this.initSearchData(res[1])
+                })
+            },
+            formatDate(date) {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              return `${year}-${month}-${day}`;
+            },
+            getMaxDate(date1, date2) {
+              const d1 = date1 ? new Date(date1) : null;
+              const d2 = date2 ? new Date(date2) : null;
+              if (!d1 && !d2) return null;
+              if (d1 && isNaN(d1.getTime())) return null;
+              if (d2 && isNaN(d2.getTime())) return null;
+              const maxDate = new Date(Math.max(d1 ? d1.getTime() : 0, d2 ? d2.getTime() : 0));
+              maxDate.setHours(0, 0, 0, 0);
+              return maxDate;
+            },
+            setDefaultDate() {
+              const maxDate = this.getMaxDate(this.formSearch.Date1, this.formSearch.Date2) || new Date();
+              const endDate = new Date(maxDate);
+              endDate.setDate(maxDate.getDate() + 14);
+              this.Date = [this.formatDate(maxDate), this.formatDate(endDate)];
+            },
+            setDefaultDateRange() {
+                const maxDate = this.getMaxDate(this.formSearch.Date1, this.formSearch.Date2) || new Date();
+                const endDate = new Date(maxDate);
+                endDate.setDate(maxDate.getDate() + 14);
+                return {
+                    start: this.formatDate(maxDate),
+                    end: this.formatDate(endDate)
+                };
+            },
+
+            DateChange1(selectedDate){
+                this.handleDateChange(selectedDate)
+            },
+            DateChange2(selectedDate){
+                this.handleDateChange(selectedDate)
+            },
+handleDateChange(selectedDate) {
+    if (!selectedDate) return;
+
+    const maxDate = this.getMaxDate(this.formSearch.Date1, this.formSearch.Date2);
+    if (!maxDate) return;
+
+    const currentStartDate = this.Date?.[0];
+    const currentEndDate = this.Date?.[1];
+    const currentStartDateObj = currentStartDate ? new Date(currentStartDate) : null;
+    const currentEndDateObj = currentEndDate ? new Date(currentEndDate) : null;
+
+    const hasValidRange = currentStartDateObj && currentEndDateObj &&
+        !isNaN(currentStartDateObj.getTime()) &&
+        !isNaN(currentEndDateObj.getTime());
+
+    if (hasValidRange && currentStartDateObj.getTime() >= maxDate.getTime()) {
+        return;
+    }
+
+    const endDate = new Date(maxDate);
+    endDate.setDate(maxDate.getDate() + 14);
+    this.Date = [this.formatDate(maxDate), this.formatDate(endDate)];
+},
+                        //合并表格
+            //合并行数和列数
+            objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+                for (const { labels, subtotals, attr } of Object.values(this.hangLabels)) {
+                    const columnIndex = labels.indexOf(column.label)
+                    if (columnIndex !== -1 && subtotals.includes(row[attr])) {
+                        return columnIndex === 0 ? [1, labels.length] : [0, 0]
+                    }
+                }
+                for (const key in this.rowMergeArrs) {
+                    if (column.property == key) {
+                        const _row = this.rowMergeArrs[key].rowArr[rowIndex]
+                        const _col = _row > 0 ? 1 : 0
+                        return [_row, _col]
+                    }
+                }
+            },
+            //获取合并列数
+            getRowSpanQty(row, rowIndex, columnIndex, obj) {
+                const that = this;
+                console.log('rowIndex', rowIndex)
+                if (rowIndex == 0) {
+                    //当第一行，就循环判断一下行是否存在相同内容，是则行数+1
+                    let isNeedNextRow = true;	//是否继续循环下一行同一个单元格
+                    for (let i = 0; i < that.tableDataNew.length; i++) {
+                        if (rowIndex != i && isNeedNextRow != false) {
+                            let data = that.tableDataNew[i];
+                            if (data[this.columnOrder[columnIndex]] == row[this.columnOrder[columnIndex]]) {
+                                obj.rowspan++;
+                                isNeedNextRow = true;
+                            } else {
+                                isNeedNextRow = false;
+                            }
+                        }
+                    }
+                } else {
+                    let data = that.tableDataNew[rowIndex - 1];
+                    if (data[this.columnOrder[columnIndex]] == row[this.columnOrder[columnIndex]]) {
+                        //当不是第一行，则判断当前单元格与上一行的当前单元格是否一致，一致则不显示
+                        obj.rowspan = 0;
+                        obj.colspan = 0;
+                    }
+                }
+                return obj;
+            },
+            //获取合并列数
+            getColumnSpanQty(row, rowIndex, columnIndex, obj) {
+                const that = this;
+                let isNeedNextColumn = true;	//是否继续循环当前行下一个单元格
+                for (let i = columnIndex; i < this.columnOrder.length; i++) {
+                    if (isNeedNextColumn != false) {
+                        let columnName = this.columnOrder[i + 1];
+                        if (row[this.columnOrder[columnIndex]] == row[columnName]) {
+                            //当前行的单元格=当前行的下一个单元格，则列数+1
+                            obj.colspan++;
+                            isNeedNextColumn = true;
+                        } else {
+                            isNeedNextColumn = false;
+                        }
+                    }
+                }
+
+                if (row[this.columnOrder[columnIndex]] == row[this.columnOrder[columnIndex - 1]]) {
+                    //当当前行的当前单元格=当前行的上一个单元格，则0不显示
+                    obj.rowspan = 0;
+                    obj.colspan = 0;
+                }
+                return obj;
+            },
+            rowMergeHandle(arr, data) {
+                if (!Array.isArray(arr) && !arr.length) return falsse
+                if (!Array.isArray(data) && !data.length) return false
+                const needMerge = {}
+                arr.forEach(i => {
+                    needMerge[i] = {
+                        rowArr: [],
+                        rowMergeNum: 0
+                    }
+                    data.forEach((item, index) => {
+                        if (index === 0) {
+                            needMerge[i].rowArr.push(1)
+                            needMerge[i].rowMergeNum = 0
+                        } else {
+                            if (item[i] === data[index - 1][i]) {
+                                needMerge[i].rowArr[needMerge[i].rowMergeNum] += 1
+                                needMerge[i].rowArr.push(0)
+                            } else {
+                                needMerge[i].rowArr.push(1)
+                                needMerge[i].rowMergeNum = index
+                            }
+                        }
+                    })
+                })
+                return needMerge
+            },
+            CodeNameClick(row){
+                row.isExpanded = !row.isExpanded;
+                if (row.isExpanded) {
+                    this.openTableList(row); 
+                }else{
+                    this.closeTableList(row);
+                }
+            },
+            closeTableList(row) {
+                // 过滤掉当前父行对应的所有子行
+                this.tableDataNew = this.tableDataNew.filter(item => {
+                // 保留：非子行 或 不是当前父行的子行
+                return !item.isChildRow || item.parentCode !== row.Code;
+                });
+
+                // 关键：重新计算合并单元格配置，否则表格合并会错乱
+                this.rowMergeArrs = this.rowMergeHandle(this.needMergeArr, this.tableDataNew);
+            },
+        },
+
+    })
+</script>
+
