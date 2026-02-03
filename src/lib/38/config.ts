@@ -22,6 +22,8 @@ export const dbConfig = {
 // 数据库表名常量
 export const TABLE_NAMES = {
   HOTEL_BASE_INFO: '[CrsStar].dbo.StarHotelBaseInfo',
+  STAR_RATE_CODE_INFO: '[CrsStar].dbo.StarRateCodeInfo',
+  STAR_PUBLISH_RATE_CODE_INFO: '[CrsStar].dbo.StarPublishRateCodeInfo',
 } as const;
 
 // 酒店基础信息接口 - 根据StarHotelBaseInfo表结构定义

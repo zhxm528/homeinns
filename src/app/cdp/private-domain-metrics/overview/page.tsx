@@ -119,7 +119,7 @@ export default function PrivateDomainMetricsOverviewPage() {
             />
           </div>
 
-          <QueryFilters onChange={handleFiltersChange} />
+          <QueryFilters onChange={handleFiltersChange} enablePeriodFilters={false} showDateRange />
 
           {loading && (
             <div className="mt-8 bg-white border border-gray-200 rounded-xl p-6 text-gray-600">

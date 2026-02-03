@@ -3,6 +3,7 @@ import '@ant-design/v5-patch-for-react-19';
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import Breadcrumb from '@/components/Breadcrumb';
 // @ts-ignore: antd may not have types installed in this environment
 import 'antd/dist/reset.css';
 // @ts-ignore: antd types might be missing
@@ -80,6 +81,15 @@ export default function BiGuestHistoryMarketDiffCheckPage() {
     const trimmed = fixed.replace(/\.00$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
     return trimmed.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
+  const breadcrumbItems = useMemo(
+    () => [
+      { label: '首页', href: '/' },
+      { label: '中央预订CRS', href: '/crs' },
+      { label: '酒店财务', href: '/crs/finance' },
+      { label: 'BI和客史市场差异检查' },
+    ],
+    []
+  );
 
   const handleStartDateChange = (date: any, dateString: string) => {
     setStartDate(dateString || '');
@@ -339,16 +349,11 @@ export default function BiGuestHistoryMarketDiffCheckPage() {
 
   return (
     <ConfigProvider locale={zhCN}>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 页面标题和返回按钮 */}
-          <div className="mb-8">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">BI和客史市场差异检查</h1>
-                <p className="text-gray-600">查看BI和客史市场差异检查统计数据</p>
-              </div>
-              {/* 右上角返回按钮 */}
+    <div className="min-h-screen w-full bg-gray-50 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Breadcrumb items={breadcrumbItems} />
               <Link
                 href="/product"
                 className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"

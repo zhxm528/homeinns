@@ -8,15 +8,43 @@ import QueryFilters from "@/components/cdp/private-domain-metrics/QueryFilters";
 import Breadcrumb from "@/components/Breadcrumb";
 import { headerMenuById } from "@/data/menu";
 import type { PrivateDomainMetricDetail } from "@/lib/privateDomainMetrics";
+import type { PrivateDomainFilters } from "@/components/cdp/private-domain-metrics/QueryFilters";
 
 type MetricDetailPageProps = {
   metricId: string;
   pageTitle: string;
   metricName?: string;
   showBreadcrumb?: boolean;
+  dashboardFiltersConfig?: {
+    enablePeriodFilters?: boolean;
+    showDateRange?: boolean;
+  };
+  detailFiltersConfig?: {
+    enablePeriodFilters?: boolean;
+    showDateRange?: boolean;
+  };
+  showBreakdownHint?: boolean;
+  showDetailExportButton?: boolean;
+  detailTableVariant?: "default" | "yifen" | "miniapp" | "goldvip" | "metricone";
+  breakdownLabels?: {
+    denominator: string;
+    completed: string;
+    pending: string;
+  };
 };
 
-export default function MetricDetailPage({ metricId, pageTitle, metricName, showBreadcrumb = false }: MetricDetailPageProps) {
+export default function MetricDetailPage({
+  metricId,
+  pageTitle,
+  metricName,
+  showBreadcrumb = false,
+  dashboardFiltersConfig,
+  detailFiltersConfig,
+  showBreakdownHint = true,
+  showDetailExportButton = false,
+  detailTableVariant = "default",
+  breakdownLabels,
+}: MetricDetailPageProps) {
   const section = headerMenuById("cdp");
   if (!section) {
     throw new Error("CDP menu configuration missing.");
@@ -30,7 +58,14 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
   const [isDefOpen, setIsDefOpen] = useState(false);
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
+  const [detailPeriod, setDetailPeriod] = useState<"week" | "month" | "quarter" | "year">("quarter");
+  const [detailPeriodValue, setDetailPeriodValue] = useState("");
+  const [detailStartDate, setDetailStartDate] = useState("");
+  const [detailEndDate, setDetailEndDate] = useState("");
+  const [dashboardPeriod, setDashboardPeriod] = useState<PrivateDomainFilters["selectedPeriod"]>(null);
   const infoRef = useRef<HTMLDivElement | null>(null);
+  const resolvedDashboardFiltersConfig = dashboardFiltersConfig ?? {};
+  const resolvedDetailFiltersConfig = detailFiltersConfig ?? {};
 
   const cityKey = (region: string, city: string) => `${region}||${city}`;
 
@@ -111,8 +146,116 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
     fetchData();
   }, [metricId]);
 
-  const trendOption = useMemo(() => {
+  const parseDate = (value: string) => {
+    if (!value) {
+      return null;
+    }
+    const [year, month, day] = value.split("-").map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  };
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const addDays = (baseDate: Date, diff: number) =>
+    new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + diff);
+
+  const getWeekStart = (date: Date) => {
+    const day = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    return addDays(date, diff);
+  };
+
+  const getMonthEnd = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  const getQuarterStart = (date: Date) => {
+    const quarterStartMonth = Math.floor(date.getMonth() / 3) * 3;
+    return new Date(date.getFullYear(), quarterStartMonth, 1);
+  };
+
+  const getQuarterEnd = (date: Date) => {
+    const start = getQuarterStart(date);
+    return new Date(start.getFullYear(), start.getMonth() + 3, 0);
+  };
+
+  useEffect(() => {
+    if (!resolvedDetailFiltersConfig.showDateRange) {
+      return;
+    }
+    if (detailStartDate || detailEndDate) {
+      return;
+    }
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const quarterStart = getQuarterStart(today);
+    setDetailStartDate(formatDate(quarterStart));
+    setDetailEndDate(formatDate(today));
+  }, [detailEndDate, detailStartDate, resolvedDetailFiltersConfig.showDateRange]);
+
+  const trendSeries = useMemo(() => {
     if (!data) {
+      return null;
+    }
+    if (dashboardPeriod !== "week" && dashboardPeriod !== "month") {
+      return null;
+    }
+
+    const points = data.trend.dates
+      .map((value, index) => ({ date: parseDate(value), value: data.trend.values[index] }))
+      .filter((item) => item.date && Number.isFinite(item.value)) as { date: Date; value: number }[];
+
+    if (points.length === 0) {
+      return null;
+    }
+
+    const buckets = new Map<string, { start: Date; end: Date; values: number[] }>();
+
+    if (dashboardPeriod === "week") {
+      points.forEach(({ date, value }) => {
+        const start = getWeekStart(date);
+        const end = addDays(start, 6);
+        const key = formatDate(start);
+        const current = buckets.get(key) ?? { start, end, values: [] };
+        current.values.push(value);
+        buckets.set(key, current);
+      });
+
+      const sorted = Array.from(buckets.values()).sort((a, b) => a.start.getTime() - b.start.getTime());
+      const recent = sorted.slice(-12);
+      return {
+        labels: recent.map((item) => `${formatDate(item.start)}~${formatDate(item.end)}`),
+        values: recent.map((item) => item.values.reduce((sum, v) => sum + v, 0) / item.values.length),
+      };
+    }
+
+    points.forEach(({ date, value }) => {
+      const start = new Date(date.getFullYear(), date.getMonth(), 1);
+      const end = getMonthEnd(date);
+      const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`;
+      const current = buckets.get(key) ?? { start, end, values: [] };
+      current.values.push(value);
+      buckets.set(key, current);
+    });
+
+    const sorted = Array.from(buckets.entries())
+      .map(([key, item]) => ({ key, ...item }))
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+    const recent = sorted.slice(-12);
+    return {
+      labels: recent.map((item) => item.key),
+      values: recent.map((item) => item.values.reduce((sum, v) => sum + v, 0) / item.values.length),
+    };
+  }, [data, dashboardPeriod]);
+
+  const trendOption = useMemo(() => {
+    if (!data || !trendSeries) {
       return {};
     }
     return {
@@ -120,7 +263,7 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
       grid: { left: 36, right: 20, top: 20, bottom: 30 },
       xAxis: {
         type: "category",
-        data: data.trend.dates,
+        data: trendSeries.labels,
         boundaryGap: false,
         axisLine: { lineStyle: { color: "#E5E7EB" } },
         axisLabel: { color: "#6B7280" },
@@ -137,7 +280,7 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
           name: data.name,
           type: "line",
           smooth: true,
-          data: data.trend.values,
+          data: trendSeries.values,
           symbol: "circle",
           symbolSize: 6,
           lineStyle: { width: 2, color: "#2563EB" },
@@ -145,40 +288,103 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
         },
       ],
     };
-  }, [data]);
+  }, [data, trendSeries]);
 
-  const breakdownOption = useMemo(() => {
-    if (!data) {
-      return {};
+  const detailPeriodOptions = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (detailPeriod === "week") {
+      return Array.from({ length: 8 }).map((_, index) => {
+        const base = addDays(today, -7 * index);
+        const start = getWeekStart(base);
+        const end = addDays(start, 6);
+        return {
+          label: `${formatDate(start)} ~ ${formatDate(end)}`,
+          value: `${formatDate(start)}_${formatDate(end)}`,
+          startDate: formatDate(start),
+          endDate: formatDate(end),
+        };
+      });
     }
-    const names = data.breakdown.byStore.map((item) => item.name);
-    return {
-      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-      grid: { left: 160, right: 24, top: 10, bottom: 20 },
-      xAxis: {
-        type: "value",
-        axisLine: { lineStyle: { color: "#E5E7EB" } },
-        axisLabel: { color: "#6B7280" },
-        splitLine: { lineStyle: { color: "#E5E7EB", type: "dashed" } },
-      },
-      yAxis: {
-        type: "category",
-        data: names,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { color: "#6B7280" },
-      },
-      series: [
-        {
-          name: "完成率",
-          type: "bar",
-          data: data.breakdown.byStore.map((item) => item.value),
-          barWidth: 16,
-          itemStyle: { color: "#2563EB", borderRadius: [6, 6, 6, 6] },
-        },
-      ],
-    };
-  }, [data]);
+
+    if (detailPeriod === "month") {
+      return Array.from({ length: 12 }).map((_, index) => {
+        const base = new Date(today.getFullYear(), today.getMonth() - index, 1);
+        const start = new Date(base.getFullYear(), base.getMonth(), 1);
+        const end = index === 0 ? today : getMonthEnd(base);
+        return {
+          label: `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, "0")}`,
+          value: `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, "0")}`,
+          startDate: formatDate(start),
+          endDate: formatDate(end),
+        };
+      });
+    }
+
+    if (detailPeriod === "quarter") {
+      return Array.from({ length: 8 }).map((_, index) => {
+        const base = new Date(today.getFullYear(), today.getMonth() - index * 3, 1);
+        const start = getQuarterStart(base);
+        const end = index === 0 ? today : getQuarterEnd(base);
+        const quarter = Math.floor(start.getMonth() / 3) + 1;
+        return {
+          label: `${start.getFullYear()} Q${quarter}`,
+          value: `${start.getFullYear()}-Q${quarter}`,
+          startDate: formatDate(start),
+          endDate: formatDate(end),
+        };
+      });
+    }
+
+    return Array.from({ length: 5 }).map((_, index) => {
+      const year = today.getFullYear() - index;
+      const start = new Date(year, 0, 1);
+      const end = index === 0 ? today : new Date(year, 11, 31);
+      return {
+        label: `${year}`,
+        value: `${year}`,
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+      };
+    });
+  }, [detailPeriod]);
+
+  useEffect(() => {
+    if (resolvedDetailFiltersConfig.enablePeriodFilters === false) {
+      return;
+    }
+    if (detailPeriodOptions.length === 0) {
+      return;
+    }
+    const next = detailPeriodOptions[0];
+    setDetailPeriodValue(next.value);
+    setDetailStartDate(next.startDate);
+    setDetailEndDate(next.endDate);
+  }, [detailPeriodOptions, resolvedDetailFiltersConfig.enablePeriodFilters]);
+
+  const handleDetailPeriodSelect = (value: string) => {
+    setDetailPeriodValue(value);
+    const option = detailPeriodOptions.find((item) => item.value === value);
+    if (!option) {
+      return;
+    }
+    setDetailStartDate(option.startDate);
+    setDetailEndDate(option.endDate);
+  };
+
+  const handleDetailDateChange = (key: "detailStartDate" | "detailEndDate") => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    if (key === "detailStartDate") {
+      setDetailStartDate(nextValue);
+    } else {
+      setDetailEndDate(nextValue);
+    }
+  };
+
+  const handleDashboardFiltersChange = (filters: PrivateDomainFilters) => {
+    setDashboardPeriod(filters.selectedPeriod ?? null);
+  };
 
   // 模拟表格数据并生成城区、小计行与大区小计行
   const tableRows = useMemo(() => {
@@ -194,7 +400,7 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
     };
 
     const simulated: Omit<Row, 'targetPer100' | 'isCitySubtotal' | 'isRegionSubtotal'>[] = [
-      { region: "华北", city: "北京一", store: "门店A", success: 120, total: 10000 },
+      { region: "华北", city: "北京一", store: "UC0002 静安逸扉酒店", success: 120, total: 10000 },
       { region: "华北", city: "北京一", store: "门店B", success: 80, total: 5000 },
       { region: "华北", city: "北京二", store: "门店C", success: 95, total: 7000 },
       { region: "华南", city: "广州一", store: "门店D", success: 60, total: 6000 },
@@ -348,7 +554,13 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
             </div>
           </div>
 
-          {activeTab !== "details" && <QueryFilters />}
+          {activeTab !== "details" && (
+            <QueryFilters
+              onChange={handleDashboardFiltersChange}
+              enablePeriodFilters={resolvedDashboardFiltersConfig.enablePeriodFilters}
+              showDateRange={resolvedDashboardFiltersConfig.showDateRange}
+            />
+          )}
 
           {loading && (
             <div className="bg-white border border-gray-200 rounded-xl p-6 text-gray-600">
@@ -377,27 +589,28 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
                     <div className="text-sm text-gray-500">同比</div>
                     <div className="text-2xl font-semibold text-gray-900 mt-2">{data.yoy}</div>
                   </div>
-                  <div className="border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm text-gray-500">环比</div>
-                    <div className="text-2xl font-semibold text-gray-900 mt-2">{data.mom}</div>
-                  </div>
-                  <div className="border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm text-gray-500">排名</div>
-                    <div className="text-2xl font-semibold text-gray-900 mt-2">{data.ranking}</div>
-                  </div>
                 </div>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-2xl p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-gray-900">构成拆解</h2>
-                  <div className="text-sm text-gray-500">支持门店 / 时间 / 人群拆解</div>
+                  {showBreakdownHint && <div className="text-sm text-gray-500">支持门店 / 时间 / 人群拆解</div>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   {[
-                    { label: "分母规模", value: data.breakdown.denominator },
-                    { label: "已完成量", value: data.breakdown.completed },
-                    { label: "未完成量", value: data.breakdown.pending },
+                    {
+                      label: breakdownLabels?.denominator ?? "分母规模",
+                      value: data.breakdown.denominator,
+                    },
+                    {
+                      label: breakdownLabels?.completed ?? "已完成量",
+                      value: data.breakdown.completed,
+                    },
+                    {
+                      label: breakdownLabels?.pending ?? "未完成量",
+                      value: data.breakdown.pending,
+                    },
                   ].map((item) => (
                     <div key={item.label} className="border border-gray-200 rounded-xl p-4">
                       <div className="text-sm text-gray-500">{item.label}</div>
@@ -406,59 +619,29 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                  <div className="border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm text-gray-500 mb-3">门店拆解（完成率）</div>
-                    <ReactECharts option={breakdownOption} style={{ height: 280 }} />
-                  </div>
-                  <div className="border border-gray-200 rounded-xl p-4 space-y-4">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-2">时间拆解</div>
-                      <div className="space-y-2">
-                        {data.breakdown.byTime.map((item) => (
-                          <div
-                            key={item.label}
-                            className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2"
-                          >
-                            <span className="text-sm text-gray-700">{item.label}</span>
-                            <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500 mb-2">人群拆解</div>
-                      <div className="space-y-2">
-                        {data.breakdown.byGroup.map((item) => (
-                          <div key={item.name} className="flex items-center justify-between text-sm text-gray-700">
-                            <span>{item.name}</span>
-                            <span className="font-semibold text-gray-900">{item.value}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div className="mt-6" />
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-gray-900">趋势分析</h2>
-                  <div className="text-sm text-gray-500">按日趋势</div>
+              {trendSeries && (
+                <div className="bg-white border border-gray-200 rounded-2xl p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-lg font-semibold text-gray-900">趋势分析</h2>
+                    <div className="text-sm text-gray-500">{dashboardPeriod === "month" ? "按月趋势" : "按周趋势"}</div>
+                  </div>
+                  <div className="mt-4">
+                    <ReactECharts option={trendOption} style={{ height: 300 }} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {data.trend.keyPoints.map((point) => (
+                      <div key={point.date} className="border border-gray-200 rounded-xl p-4">
+                        <div className="text-sm text-gray-500">{point.date}</div>
+                        <div className="text-base font-semibold text-gray-900 mt-1">{point.label}</div>
+                        <div className="text-sm text-gray-600 mt-2">{point.note}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <ReactECharts option={trendOption} style={{ height: 300 }} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  {data.trend.keyPoints.map((point) => (
-                    <div key={point.date} className="border border-gray-200 rounded-xl p-4">
-                      <div className="text-sm text-gray-500">{point.date}</div>
-                      <div className="text-base font-semibold text-gray-900 mt-1">{point.label}</div>
-                      <div className="text-sm text-gray-600 mt-2">{point.note}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
 
               <div className="bg-white border border-gray-200 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">行动指引</h2>
@@ -495,17 +678,160 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
           {!loading && data && activeTab === "details" && (
             <div className="space-y-6">
               <div className="bg-white border border-gray-200 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">指标明细表</h2>
+                <div className="flex gap-8">
+                  {resolvedDetailFiltersConfig.enablePeriodFilters !== false && (
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 font-medium mb-3">周期</div>
+                      <div className="flex flex-wrap gap-3">
+                        {(["week", "month", "quarter", "year"] as const).map((period) => (
+                          <button
+                            key={period}
+                            type="button"
+                            onClick={() => setDetailPeriod(period)}
+                            className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
+                              detailPeriod === period
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                            }`}
+                          >
+                            {period === "week" ? "周" : period === "month" ? "月" : period === "quarter" ? "季度" : "年"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {resolvedDetailFiltersConfig.enablePeriodFilters !== false && (
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 font-medium mb-3">周期对应日期</div>
+                      <select
+                        value={detailPeriodValue}
+                        onChange={(event) => handleDetailPeriodSelect(event.target.value)}
+                        className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700"
+                      >
+                        {detailPeriodOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {detailStartDate && detailEndDate ? `${detailStartDate} 至 ${detailEndDate}` : "请选择周期日期"}
+                      </div>
+                    </div>
+                  )}
+                  {resolvedDetailFiltersConfig.showDateRange && (
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 font-medium mb-3">日期段</div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="date"
+                          value={detailStartDate}
+                          onChange={handleDetailDateChange("detailStartDate")}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                        />
+                        <span className="text-sm text-gray-500">至</span>
+                        <input
+                          type="date"
+                          value={detailEndDate}
+                          onChange={handleDetailDateChange("detailEndDate")}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">指标明细表</h2>
+                  {showDetailExportButton && (
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg border border-blue-600 text-blue-600 text-sm font-medium hover:bg-blue-50"
+                    >
+                      Excel导出
+                    </button>
+                  )}
+                </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="text-left text-gray-500">
                         <th className="px-4 py-2">大区 / 城区 / 门店</th>
-                        <th className="px-4 py-2">成功拉新人数</th>
-                        <th className="px-4 py-2">可拉新总人数</th>
-                        <th className="px-4 py-2">每百人拉新数</th>
-                        <th className="px-4 py-2">每百人拉新目标</th>
-                        <th className="px-4 py-2">拉新完成率</th>
+                        {detailTableVariant === "yifen" ? (
+                          <>
+                            <th className="px-4 py-2">成功拉新逸粉人数</th>
+                            <th className="px-4 py-2">可拉新逸粉总人数</th>
+                            <th className="px-4 py-2">每百人拉新数（逸粉）</th>
+                            <th className="px-4 py-2">Q1指标</th>
+                            <th className="px-4 py-2">Q1指标完成率</th>
+                            <th className="px-4 py-2">Q2指标</th>
+                            <th className="px-4 py-2">Q2指标完成率</th>
+                            <th className="px-4 py-2">Q3指标</th>
+                            <th className="px-4 py-2">Q3指标完成率</th>
+                            <th className="px-4 py-2">Q4指标</th>
+                            <th className="px-4 py-2">Q4指标完成率</th>
+                          </>
+                        ) : detailTableVariant === "miniapp" ? (
+                          <>
+                            <th className="px-4 py-2">逸扉小程序渠道间夜数</th>
+                            <th className="px-4 py-2">全渠道预订间夜数</th>
+                            <th className="px-4 py-2">逸扉小程序渠道间夜相对占比</th>
+                            <th className="px-4 py-2">可售间夜数</th>
+                            <th className="px-4 py-2">逸扉小程序渠道间夜绝对占比</th>
+                            <th className="px-4 py-2">Q1指标</th>
+                            <th className="px-4 py-2">Q1指标完成率</th>
+                            <th className="px-4 py-2">Q2指标</th>
+                            <th className="px-4 py-2">Q2指标完成率</th>
+                            <th className="px-4 py-2">Q3指标</th>
+                            <th className="px-4 py-2">Q3指标完成率</th>
+                            <th className="px-4 py-2">Q4指标</th>
+                            <th className="px-4 py-2">Q4指标完成率</th>
+                          </>
+                        ) : detailTableVariant === "metricone" ? (
+                          <>
+                            <th className="px-4 py-2">成功拉新人数</th>
+                            <th className="px-4 py-2">可拉新总人数</th>
+                            <th className="px-4 py-2">每百人拉新数</th>
+                            <th className="px-4 py-2">Q1指标</th>
+                            <th className="px-4 py-2">Q1指标完成率</th>
+                            <th className="px-4 py-2">Q2指标</th>
+                            <th className="px-4 py-2">Q2指标完成率</th>
+                            <th className="px-4 py-2">Q3指标</th>
+                            <th className="px-4 py-2">Q3指标完成率</th>
+                            <th className="px-4 py-2">Q4指标</th>
+                            <th className="px-4 py-2">Q4指标完成率</th>
+                          </>
+                        ) : detailTableVariant === "goldvip" ? (
+                          <>
+                            <th className="px-4 py-2">金牛及以上本人小程序预订且入住的逸粉人数</th>
+                            <th className="px-4 py-2">全渠道预订人数</th>
+                            <th className="px-4 py-2">金牛及以上逸粉小程序本人预订且入住占比</th>
+                            <th className="px-4 py-2">Q1指标</th>
+                            <th className="px-4 py-2">Q1指标完成率</th>
+                            <th className="px-4 py-2">Q2指标</th>
+                            <th className="px-4 py-2">Q2指标完成率</th>
+                            <th className="px-4 py-2">Q3指标</th>
+                            <th className="px-4 py-2">Q3指标完成率</th>
+                            <th className="px-4 py-2">Q4指标</th>
+                            <th className="px-4 py-2">Q4指标完成率</th>
+                          </>
+                        ) : (
+                          <>
+                            <th className="px-4 py-2">成功拉新人数</th>
+                            <th className="px-4 py-2">可拉新总人数</th>
+                            <th className="px-4 py-2">每百人拉新数</th>
+                            <th className="px-4 py-2">Q1指标</th>
+                            <th className="px-4 py-2">Q1指标完成率</th>
+                            <th className="px-4 py-2">Q2指标</th>
+                            <th className="px-4 py-2">Q2指标完成率</th>
+                            <th className="px-4 py-2">Q3指标</th>
+                            <th className="px-4 py-2">Q3指标完成率</th>
+                            <th className="px-4 py-2">Q4指标</th>
+                            <th className="px-4 py-2">Q4指标完成率</th>
+                          </>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -524,9 +850,69 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
                                 </td>
                                 <td className="px-4 py-2 align-top">{regionSubtotal?.success ?? '-'}</td>
                                 <td className="px-4 py-2 align-top">{regionSubtotal?.total ?? '-'}</td>
-                                <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
-                                <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
-                                <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                {detailTableVariant === "yifen" ? (
+                                  <>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                  </>
+                                ) : detailTableVariant === "miniapp" ? (
+                                  <>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                  </>
+                                ) : detailTableVariant === "metricone" ? (
+                                  <>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                  </>
+                                ) : detailTableVariant === "goldvip" ? (
+                                  <>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                  </>
+                                ) : (
+                                  <>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal ? ((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? (regionSubtotal.targetPer100).toFixed(2) : '-'}</td>
+                                    <td className="px-4 py-2 align-top">{regionSubtotal?.targetPer100 ? `${(((regionSubtotal.success / Math.max(1, regionSubtotal.total)) * 100) / regionSubtotal.targetPer100 * 100).toFixed(1)}%` : '-'}</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                    <td className="px-4 py-2 align-top">-</td>
+                                  </>
+                                )}
                               </tr>
 
                               {isRegionExpanded(region) &&
@@ -540,25 +926,144 @@ export default function MetricDetailPage({ metricId, pageTitle, metricName, show
                                         <td className="px-4 py-2 align-top">
                                           <div className="flex items-center gap-2">
                                             <CityToggle region={region} city={city} />
-                                            <span className="text-sm text-gray-700 font-medium">{city}</span>
                                           </div>
                                         </td>
                                         <td className="px-4 py-2 align-top">{citySubtotal?.success ?? '-'}</td>
                                         <td className="px-4 py-2 align-top">{citySubtotal?.total ?? '-'}</td>
-                                        <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
-                                        <td className="px-4 py-2 align-top">-</td>
-                                        <td className="px-4 py-2 align-top">-</td>
+                                        {detailTableVariant === "yifen" ? (
+                                          <>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                          </>
+                                        ) : detailTableVariant === "miniapp" ? (
+                                          <>
+                                            <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                          </>
+                                        ) : detailTableVariant === "metricone" ? (
+                                          <>
+                                            <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                          </>
+                                        ) : detailTableVariant === "goldvip" ? (
+                                          <>
+                                            <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <td className="px-4 py-2 align-top">{citySubtotal ? ((citySubtotal.success / Math.max(1, citySubtotal.total)) * 100).toFixed(2) : '-'}</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                            <td className="px-4 py-2 align-top">-</td>
+                                          </>
+                                        )}
                                       </tr>
 
                                       {isCityExpanded(region, city) &&
                                         cityStores.map((storeRow, sidx) => (
                                           <tr key={`store-${region}-${city}-${sidx}`} className="">
-                                            <td className="px-4 py-2 align-top pl-6">{city} / {storeRow.store}</td>
+                                            <td className="px-4 py-2 align-top pl-6">{storeRow.store}</td>
                                             <td className="px-4 py-2 align-top">{storeRow.success}</td>
                                             <td className="px-4 py-2 align-top">{storeRow.total}</td>
-                                            <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
-                                            <td className="px-4 py-2 align-top">-</td>
-                                            <td className="px-4 py-2 align-top">-</td>
+                                            {detailTableVariant === "yifen" ? (
+                                              <>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                              </>
+                                            ) : detailTableVariant === "miniapp" ? (
+                                              <>
+                                                <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                              </>
+                                            ) : detailTableVariant === "metricone" ? (
+                                              <>
+                                                <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                              </>
+                                            ) : detailTableVariant === "goldvip" ? (
+                                              <>
+                                                <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <td className="px-4 py-2 align-top">{(storeRow.total > 0 ? (storeRow.success / storeRow.total) * 100 : 0).toFixed(2)}</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                                <td className="px-4 py-2 align-top">-</td>
+                                              </>
+                                            )}
                                           </tr>
                                         ))}
                                     </React.Fragment>

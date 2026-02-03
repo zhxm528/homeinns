@@ -105,10 +105,6 @@ export const headerMenus: HeaderMenu[] = [
         url: "/crs/hotel-info",
         children: [
           { id: "hotel_detail", title: "酒店详情", url: "/crs/hotel-info/detail" },
-          { id: "hotel_tags", title: "酒店标签", url: "/crs/hotel-info/tags" },
-          { id: "hotel_updates", title: "酒店动态", url: "/crs/hotel-info/updates" },
-          { id: "code_match", title: "代码匹配", url: "/crs/hotel-info/code-match" },
-          { id: "hotel_rank", title: "酒店排名", url: "/crs/hotel-info/rank" },
         ],
       },
       {
@@ -144,10 +140,21 @@ export const headerMenus: HeaderMenu[] = [
         ],
       },
       {
+        id: "order_management",
+        title: "订单管理",
+        url: "/crs/order",
+        children: [{ id: "order_query", title: "订单查询", url: "/crs/order/query" }],
+      },
+      {
         id: "hotel_finance",
         title: "酒店财务",
         url: "/crs/finance",
-        children: [{ id: "hotel_accounts", title: "酒店账项", url: "/crs/finance/accounts" }],
+        children: [
+          { id: "hotel_accounts", title: "酒店账项", url: "/crs/finance/accounts" },
+          { id: "account_config_check", title: "科目配置", url: "/product/dataconf/account-config-check" },
+          { id: "bi_guest_history_diff_check", title: "BI和客史差异检查", url: "/product/dataconf/bi-guest-history-diff-check" },
+          { id: "bi_guest_history_market_diff_check", title: "BI和客史市场差异检查", url: "/product/dataconf/bi-guest-history-market-diff-check" },
+        ],
       },
     ],
   },

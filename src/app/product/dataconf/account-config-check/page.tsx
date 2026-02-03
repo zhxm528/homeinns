@@ -3,6 +3,7 @@ import '@ant-design/v5-patch-for-react-19';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Breadcrumb from '@/components/Breadcrumb';
 import { Button, DatePicker, Form, Table, Row, Col, Space, Input, message, Select, ConfigProvider } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -57,6 +58,15 @@ export default function AccountConfigCheckPage() {
     { title: '部门代码', dataIndex: 'dept', key: 'dept', width: 120 },
     { title: '部门名称', dataIndex: 'deptname', key: 'deptname', width: 120 },
   ], []);
+  const breadcrumbItems = useMemo(
+    () => [
+      { label: '首页', href: '/' },
+      { label: '中央预订CRS', href: '/crs' },
+      { label: '酒店财务', href: '/crs/finance' },
+      { label: '科目配置' },
+    ],
+    []
+  );
 
   const fetchData = async (override?: Partial<{ page: number; pageSize: number }>) => {
     const values = form.getFieldsValue();
@@ -284,15 +294,11 @@ export default function AccountConfigCheckPage() {
 
   return (
     <ConfigProvider locale={zhCN}>
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 页面标题和返回按钮 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">科目配置检查</h1>
-              <p className="text-gray-600">检查科目配置是否符合每日实际收入情况</p>
-            </div>
+    <div className="min-h-screen w-full bg-gray-50 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Breadcrumb items={breadcrumbItems} />
             <Link
               href="/product"
               className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
