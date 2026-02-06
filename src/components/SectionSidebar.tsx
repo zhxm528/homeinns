@@ -56,6 +56,9 @@ const iconMap: Record<string, JSX.Element> = {
   private_domain_metrics: (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 19h16M7 16V8m5 8V5m5 11v-4" />
   ),
+  private_domain_board: (
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5h16v4H4V5zm0 6h16v4H4v-4zm0 6h16v4H4v-4z" />
+  ),
   marketing_plan: (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8M8 11h8M8 15h5M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
   ),

@@ -246,6 +246,15 @@ export const headerMenus: HeaderMenu[] = [
         ],
       },
       {
+        id: "private_domain_board",
+        title: "私域看板",
+        url: "/cdp/private-domain-board",
+        children: [
+          { id: "private_domain_insight", title: "数据洞察", url: "/cdp/private-domain-board/data-insight" },
+          { id: "private_domain_indicator_system", title: "指标体系", url: "/cdp/private-domain-board/indicator-system" },
+        ],
+      },
+      {
         id: "private_domain_metrics",
         title: "私域指标",
         url: "/cdp/private-domain-metrics",
