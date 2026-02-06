@@ -49,6 +49,7 @@ export default function QueryFilters({
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "quarter" | "year" | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [periodValue, setPeriodValue] = useState("");
+  const [quickRange, setQuickRange] = useState<"week" | "month" | "quarter" | "year" | null>(null);
 
   // 初始化默认为本季度
   useEffect(() => {
@@ -172,6 +173,31 @@ export default function QueryFilters({
     });
   }, [enablePeriodFilters, selectedPeriod]);
 
+  const getToday = () => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  };
+
+  const getQuickRangeMatch = (preferred?: "week" | "month" | "quarter" | "year" | null) => {
+    if (!filters.startDate || !filters.endDate) {
+      return null;
+    }
+    const today = getToday();
+    if (filters.endDate !== formatDate(today)) {
+      return null;
+    }
+    const start = filters.startDate;
+    const matches: ("week" | "month" | "quarter" | "year")[] = [];
+    if (start === formatDate(getWeekStart(today))) matches.push("week");
+    if (start === formatDate(new Date(today.getFullYear(), today.getMonth(), 1))) matches.push("month");
+    if (start === formatDate(getQuarterStart(today))) matches.push("quarter");
+    if (start === formatDate(new Date(today.getFullYear(), 0, 1))) matches.push("year");
+    if (preferred && matches.includes(preferred)) {
+      return preferred;
+    }
+    return matches[0] ?? null;
+  };
+
   useEffect(() => {
     if (!enablePeriodFilters) {
       return;
@@ -179,6 +205,7 @@ export default function QueryFilters({
     if (!selectedPeriod) {
       setPeriodValue("");
       setFilters((prev) => ({ ...prev, periodValue: "", startDate: "", endDate: "" }));
+      setQuickRange(null);
       return;
     }
     if (!periodValue && periodOptions.length > 0) {
@@ -190,8 +217,45 @@ export default function QueryFilters({
         endDate: next.endDate,
         periodValue: next.value,
       }));
+      setQuickRange(null);
     }
   }, [enablePeriodFilters, periodOptions, periodValue, selectedPeriod]);
+
+  const applyQuickRange = (range: "week" | "month" | "quarter" | "year") => {
+    const today = getToday();
+    let start: Date;
+
+    if (range === "week") {
+      start = getWeekStart(today);
+    } else if (range === "month") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+    } else if (range === "quarter") {
+      start = getQuarterStart(today);
+    } else {
+      start = new Date(today.getFullYear(), 0, 1);
+    }
+
+    setSelectedPeriod(null);
+    setPeriodValue("");
+    setQuickRange(range);
+    setFilters((prev) => ({
+      ...prev,
+      startDate: formatDate(start),
+      endDate: formatDate(today),
+      periodValue: "",
+    }));
+  };
+
+  const isQuickRangeActive = (range: "week" | "month" | "quarter" | "year") => {
+    return quickRange === range;
+  };
+
+  const quickRanges = [
+    { label: "本周", value: "week" },
+    { label: "本月", value: "month" },
+    { label: "本季度", value: "quarter" },
+    { label: "本年", value: "year" },
+  ] as const;
 
   const handlePeriodSelect = (value: string) => {
     setPeriodValue(value);
@@ -209,11 +273,21 @@ export default function QueryFilters({
 
   const handleDateChange = (key: "startDate" | "endDate") => (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
+    setSelectedPeriod(null);
+    setPeriodValue("");
     setFilters((prev) => ({
       ...prev,
       [key]: nextValue,
     }));
   };
+
+  useEffect(() => {
+    if (!showDateRange) {
+      setQuickRange(null);
+      return;
+    }
+    setQuickRange(getQuickRangeMatch(quickRange));
+  }, [filters.endDate, filters.startDate, quickRange, showDateRange]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
@@ -348,6 +422,22 @@ export default function QueryFilters({
         {showDateRange && (
           <div className="flex-1">
             <div className="text-sm text-gray-600 font-medium mb-3">日期段</div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {quickRanges.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => applyQuickRange(item.value)}
+                  className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+                    isQuickRangeActive(item.value)
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
             <div className="flex items-center gap-3">
               <input
                 type="date"

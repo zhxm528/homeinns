@@ -62,6 +62,7 @@ export default function MetricDetailPage({
   const [detailPeriodValue, setDetailPeriodValue] = useState("");
   const [detailStartDate, setDetailStartDate] = useState("");
   const [detailEndDate, setDetailEndDate] = useState("");
+  const [detailQuickRange, setDetailQuickRange] = useState<"week" | "month" | "quarter" | "year" | null>(null);
   const [dashboardPeriod, setDashboardPeriod] = useState<PrivateDomainFilters["selectedPeriod"]>(null);
   const infoRef = useRef<HTMLDivElement | null>(null);
   const resolvedDashboardFiltersConfig = dashboardFiltersConfig ?? {};
@@ -183,6 +184,31 @@ export default function MetricDetailPage({
   const getQuarterEnd = (date: Date) => {
     const start = getQuarterStart(date);
     return new Date(start.getFullYear(), start.getMonth() + 3, 0);
+  };
+
+  const getToday = () => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  };
+
+  const getDetailQuickRangeMatch = (preferred?: "week" | "month" | "quarter" | "year" | null) => {
+    if (!detailStartDate || !detailEndDate) {
+      return null;
+    }
+    const today = getToday();
+    if (detailEndDate !== formatDate(today)) {
+      return null;
+    }
+    const start = detailStartDate;
+    const matches: ("week" | "month" | "quarter" | "year")[] = [];
+    if (start === formatDate(getWeekStart(today))) matches.push("week");
+    if (start === formatDate(new Date(today.getFullYear(), today.getMonth(), 1))) matches.push("month");
+    if (start === formatDate(getQuarterStart(today))) matches.push("quarter");
+    if (start === formatDate(new Date(today.getFullYear(), 0, 1))) matches.push("year");
+    if (preferred && matches.includes(preferred)) {
+      return preferred;
+    }
+    return matches[0] ?? null;
   };
 
   useEffect(() => {
@@ -361,6 +387,7 @@ export default function MetricDetailPage({
     setDetailPeriodValue(next.value);
     setDetailStartDate(next.startDate);
     setDetailEndDate(next.endDate);
+    setDetailQuickRange(null);
   }, [detailPeriodOptions, resolvedDetailFiltersConfig.enablePeriodFilters]);
 
   const handleDetailPeriodSelect = (value: string) => {
@@ -371,16 +398,57 @@ export default function MetricDetailPage({
     }
     setDetailStartDate(option.startDate);
     setDetailEndDate(option.endDate);
+    setDetailQuickRange(null);
   };
 
   const handleDetailDateChange = (key: "detailStartDate" | "detailEndDate") => (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
+    setDetailPeriodValue("");
     if (key === "detailStartDate") {
       setDetailStartDate(nextValue);
     } else {
       setDetailEndDate(nextValue);
     }
   };
+
+  const applyDetailQuickRange = (range: "week" | "month" | "quarter" | "year") => {
+    const today = getToday();
+    let start: Date;
+
+    if (range === "week") {
+      start = getWeekStart(today);
+    } else if (range === "month") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+    } else if (range === "quarter") {
+      start = getQuarterStart(today);
+    } else {
+      start = new Date(today.getFullYear(), 0, 1);
+    }
+
+    setDetailPeriodValue("");
+    setDetailStartDate(formatDate(start));
+    setDetailEndDate(formatDate(today));
+    setDetailQuickRange(range);
+  };
+
+  const isDetailQuickRangeActive = (range: "week" | "month" | "quarter" | "year") => {
+    return detailQuickRange === range;
+  };
+
+  const detailQuickRanges = [
+    { label: "本周", value: "week" },
+    { label: "本月", value: "month" },
+    { label: "本季度", value: "quarter" },
+    { label: "本年", value: "year" },
+  ] as const;
+
+  useEffect(() => {
+    if (!resolvedDetailFiltersConfig.showDateRange) {
+      setDetailQuickRange(null);
+      return;
+    }
+    setDetailQuickRange(getDetailQuickRangeMatch(detailQuickRange));
+  }, [detailEndDate, detailQuickRange, detailStartDate, resolvedDetailFiltersConfig.showDateRange]);
 
   const handleDashboardFiltersChange = (filters: PrivateDomainFilters) => {
     setDashboardPeriod(filters.selectedPeriod ?? null);
@@ -719,12 +787,28 @@ export default function MetricDetailPage({
                       </div>
                     </div>
                   )}
-                  {resolvedDetailFiltersConfig.showDateRange && (
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-600 font-medium mb-3">日期段</div>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="date"
+                    {resolvedDetailFiltersConfig.showDateRange && (
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-600 font-medium mb-3">日期段</div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {detailQuickRanges.map((item) => (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => applyDetailQuickRange(item.value)}
+                              className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+                                isDetailQuickRangeActive(item.value)
+                                  ? "bg-blue-600 text-white border-blue-600"
+                                  : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="date"
                           value={detailStartDate}
                           onChange={handleDetailDateChange("detailStartDate")}
                           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"

@@ -1,0 +1,772 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "chatHome",
+      "x": 0,
+      "y": 0,
+      "name": "Chat App Home",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#ffffff",
+      "layout": "vertical",
+      "gap": 12,
+      "padding": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "header",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "ellipse",
+              "id": "avatarHeader",
+              "name": "Avatar",
+              "width": 36,
+              "height": 36,
+              "fill": "#d1d5db"
+            },
+            {
+              "type": "text",
+              "id": "title",
+              "name": "Title",
+              "content": "Luna",
+              "fill": "#111827",
+              "fontFamily": "Inter",
+              "fontSize": 20,
+              "fontWeight": "600",
+              "lineHeight": 1.4
+            },
+            {
+              "type": "frame",
+              "id": "settingsWrap",
+              "name": "Settings",
+              "width": 32,
+              "height": 32,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "settingsIcon",
+                  "x": 8,
+                  "y": 8,
+                  "width": 16,
+                  "height": 16,
+                  "iconFontName": "settings",
+                  "iconFontFamily": "lucide",
+                  "fill": "#111827"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "search",
+          "name": "Search Bar",
+          "width": "fill_container",
+          "height": 40,
+          "fill": "#f3f4f6",
+          "cornerRadius": 12,
+          "layout": "horizontal",
+          "gap": 8,
+          "padding": [
+            8,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "searchIcon",
+              "width": 16,
+              "height": 16,
+              "iconFontName": "search",
+              "iconFontFamily": "lucide",
+              "fill": "#9ca3af"
+            },
+            {
+              "type": "text",
+              "id": "searchText",
+              "name": "Placeholder",
+              "content": "Search",
+              "fill": "#9ca3af",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal",
+              "lineHeight": 1.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "chatList",
+          "name": "Chat List",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "row1",
+              "name": "Chat Row 1",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row1Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row1Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row1Name",
+                      "name": "Name",
+                      "content": "Ava",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row1Msg",
+                      "name": "Message",
+                      "content": "See you at 6?",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row1Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row1Time",
+                      "name": "Time",
+                      "content": "10:24",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row1Badge",
+                      "name": "Unread",
+                      "fill": "#ef4444",
+                      "cornerRadius": 10,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "row1BadgeText",
+                          "name": "Count",
+                          "content": "2",
+                          "fill": "#ffffff",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "lineHeight": 1.2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "row2",
+              "name": "Chat Row 2",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row2Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row2Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row2Name",
+                      "name": "Name",
+                      "content": "Milo",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row2Msg",
+                      "name": "Message",
+                      "content": "Sent the files.",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row2Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row2Time",
+                      "name": "Time",
+                      "content": "09:10",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "row3",
+              "name": "Chat Row 3",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row3Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row3Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row3Name",
+                      "name": "Name",
+                      "content": "Noah",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row3Msg",
+                      "name": "Message",
+                      "content": "On my way.",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row3Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row3Time",
+                      "name": "Time",
+                      "content": "Yesterday",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row3Badge",
+                      "name": "Unread",
+                      "fill": "#ef4444",
+                      "cornerRadius": 10,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "row3BadgeText",
+                          "name": "Count",
+                          "content": "1",
+                          "fill": "#ffffff",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "lineHeight": 1.2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "row4",
+              "name": "Chat Row 4",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row4Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row4Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row4Name",
+                      "name": "Name",
+                      "content": "Sora",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row4Msg",
+                      "name": "Message",
+                      "content": "Let’s review the draft.",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row4Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row4Time",
+                      "name": "Time",
+                      "content": "Mon",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "row5",
+              "name": "Chat Row 5",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row5Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row5Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row5Name",
+                      "name": "Name",
+                      "content": "Elli",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row5Msg",
+                      "name": "Message",
+                      "content": "Can you call me?",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row5Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row5Time",
+                      "name": "Time",
+                      "content": "Sun",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row5Badge",
+                      "name": "Unread",
+                      "fill": "#ef4444",
+                      "cornerRadius": 10,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "row5BadgeText",
+                          "name": "Count",
+                          "content": "5",
+                          "fill": "#ffffff",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "600",
+                          "lineHeight": 1.2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "row6",
+              "name": "Chat Row 6",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "row6Avatar",
+                  "name": "Avatar",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#e5e7eb"
+                },
+                {
+                  "type": "frame",
+                  "id": "row6Text",
+                  "name": "Text",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row6Name",
+                      "name": "Name",
+                      "content": "Jade",
+                      "fill": "#111827",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "lineHeight": 1.4
+                    },
+                    {
+                      "type": "text",
+                      "id": "row6Msg",
+                      "name": "Message",
+                      "content": "Thanks!",
+                      "fill": "#6b7280",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "row6Meta",
+                  "name": "Meta",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "row6Time",
+                      "name": "Time",
+                      "content": "Sat",
+                      "fill": "#9ca3af",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal",
+                      "lineHeight": 1.4
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "bottomNav",
+          "name": "Bottom Nav",
+          "width": "fill_container",
+          "height": 60,
+          "fill": "#ffffff",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#e5e7eb"
+          },
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "padding": [
+            8,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "navHome",
+              "name": "Home",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "navHomeIcon",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "home",
+                  "iconFontFamily": "lucide",
+                  "fill": "#111827"
+                },
+                {
+                  "type": "text",
+                  "id": "navHomeText",
+                  "content": "Home",
+                  "fill": "#111827",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "600",
+                  "lineHeight": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "navChats",
+              "name": "Chats",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "navChatsIcon",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "message-circle",
+                  "iconFontFamily": "lucide",
+                  "fill": "#111827"
+                },
+                {
+                  "type": "text",
+                  "id": "navChatsText",
+                  "content": "Chats",
+                  "fill": "#111827",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "600",
+                  "lineHeight": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "navDiscover",
+              "name": "Discover",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "navDiscoverIcon",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "compass",
+                  "iconFontFamily": "lucide",
+                  "fill": "#6b7280"
+                },
+                {
+                  "type": "text",
+                  "id": "navDiscoverText",
+                  "content": "Discover",
+                  "fill": "#6b7280",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "500",
+                  "lineHeight": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "navProfile",
+              "name": "Profile",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "navProfileIcon",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "user",
+                  "iconFontFamily": "lucide",
+                  "fill": "#6b7280"
+                },
+                {
+                  "type": "text",
+                  "id": "navProfileText",
+                  "content": "Profile",
+                  "fill": "#6b7280",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "500",
+                  "lineHeight": 1.2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

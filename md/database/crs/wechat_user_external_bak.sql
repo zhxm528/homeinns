@@ -1,0 +1,23 @@
+CREATE TABLE wechat_user_external_bak (
+  id bigint NOT NULL,
+  hotel_cd varchar(50),
+  user_id varchar(100),
+  external_user_id varchar(50),
+  member_id varchar(50),
+  create_time timestamp(3),
+  modified_time timestamp(3),
+  follow_user_id varchar(50),
+  follow_remark varchar(255),
+  follow_description varchar(255),
+  follow_create_time timestamp(3),
+  follow_remark_corp_name varchar(100),
+  follow_remark_mobiles varchar(255),
+  follow_state varchar(50),
+  deleted int,
+  deleted_time timestamp(3),
+  del_follow_user int,
+  del_follow_user_date timestamp(3),
+  del_contact_user int,
+  del_contact_user_date timestamp(3),
+  delete_by_transfer int
+);

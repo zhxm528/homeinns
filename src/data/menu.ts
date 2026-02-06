@@ -156,6 +156,35 @@ export const headerMenus: HeaderMenu[] = [
           { id: "bi_guest_history_market_diff_check", title: "BI和客史市场差异检查", url: "/product/dataconf/bi-guest-history-market-diff-check" },
         ],
       },
+      {
+        id: "ctrip_api",
+        title: "携程接口",
+        url: "/product/ctrip",
+        children: [
+          { id: "ctrip_hotel_info_search", title: "hotelInfoSearch 酒店查询", url: "/product/ctrip/hotelInfoSearch" },
+          {
+            id: "ctrip_master_room_info_search",
+            title: "masterRoomInfoSearch 母房型查询",
+            url: "/product/ctrip/masterRoomInfoSearch",
+          },
+          { id: "ctrip_mapping_info_search", title: "mappingInfoSearch 映射信息查询", url: "/product/ctrip/mappingInfoSearch" },
+          { id: "ctrip_mapping_info_set", title: "mappingInfoSet 映射信息设置", url: "/product/ctrip/mappingInfoSet" },
+        ],
+      },
+      {
+        id: "business_analysis",
+        title: "经营分析",
+        url: "/product/business-analysis",
+        children: [
+          { id: "business_daily_report", title: "经营日报", url: "/product/business-analysis/daily-report" },
+          { id: "daily_consumption_detail", title: "每日消费明细", url: "/product/business-analysis/daily-consumption-detail" },
+          {
+            id: "business_data_monthly_report",
+            title: "经营数据自然月报",
+            url: "/product/report-analysis/business-data-monthly-report",
+          },
+        ],
+      },
     ],
   },
   {
